@@ -223,19 +223,6 @@ from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 
 
 ```python
-loader = DataLoader(dataset,
-                    batch_size=conf.batch_size,
-                    collate_fn=gaze_patch_dataset_collate,
-                    num_workers=conf.dl_num_workers,
-                    pin_memory=True)
-y = None
-for x in loader:
-    y = x
-    break
-```
-
-
-```python
 import torch
 ```
 
