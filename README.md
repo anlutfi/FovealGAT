@@ -6,6 +6,13 @@ So, in the interest of mimicking human reasoning, it seems logical to represent 
 
 This work experiments with this concept in the specific context of chest x-rays.
 
+
+The following steps explain each component of the workflow and architecture necessary to understand and replicate this experiment.
+
+### 0. Obtain CXR Gaze Datasets
+
+This work uses both the [REFLACX](https://physionet.org/content/reflacx-xray-localization/1.0.0/) and [MIMIC Eye](https://physionet.org/content/mimic-eye-multimodal-datasets/1.0.0/) datasets. As they require certification to be accessed, they have to be obtained from their original sources.
+
 ### 1. Converting CXRs datasets to a gaze sequence
 
 In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation.
