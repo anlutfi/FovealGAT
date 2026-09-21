@@ -48,7 +48,6 @@ fe_w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')
 from gaze_datasets.dataset_tools import max_fixation_sequence_len
 reflacx_max_len = max_fixation_sequence_len(reflacx_gaze_dataset_pth)
 mimic_max_len = max_fixation_sequence_len(mimic_gaze_dataset_pth)
-
 seq_encoding_feat_count = 16
 
 #### Grapher
