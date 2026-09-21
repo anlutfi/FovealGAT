@@ -1,36 +1,24 @@
-### ADJUST BEFORE RUNNING NOTEBOOKS AND TRAINING
-#
-## raw data paths
-#reflacx_dir = '.../data/reflacx'
-#mimic_dir = '.../data/mimic/reflacx_imgs'
-#mimic_part_dir = '.../data/mimic_part_jpg'
-#
-## reflacx metadata json file
-#full_meta_json = '.../reflacx_lib/full_meta.json'
-#
-## gaze path datasets paths
-#reflacx_gaze_patch_dataset_root = '.../gaze_patch_datasets/reflacx'
-#reflacx_gaze_dataset_pth = '.../gaze_patch_datasets/reflacx/1_ang_res_256'
-#mimic_gaze_patch_dataset_root = '.../gaze_patch_datasets/mimic_eye'
-#mimic_gaze_dataset_pth = '.../gaze_patch_datasets/mimic_eye/0.037_0.035_pad31__resize256'
-#
-#
+## ADJUST BEFORE RUNNING NOTEBOOKS AND TRAINING
+
+# raw data paths
+reflacx_dir = '.../data/reflacx'
+mimic_dir = '.../data/mimic/reflacx_imgs'
+mimic_part_dir = '.../data/mimic_part_jpg'
+
+# reflacx metadata json file
+full_meta_json = '.../reflacx_lib/full_meta.json'
+
+# gaze path datasets paths
+reflacx_gaze_patch_dataset_root = '.../gaze_patch_datasets/reflacx'
+reflacx_gaze_dataset_pth = '.../gaze_patch_datasets/reflacx/1_ang_res_256'
+mimic_gaze_patch_dataset_root = '.../gaze_patch_datasets/mimic_eye'
+mimic_gaze_dataset_pth = '.../gaze_patch_datasets/mimic_eye/0.037_0.035_pad31__resize256'
+
+
 
 import torch
 from torch import nn
-# raw data paths
-reflacx_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/reflacx'
-mimic_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/mimic/reflacx_imgs'
-mimic_part_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/mimic_part_jpg'
 
-# reflacx metadata json file
-full_meta_json = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/reflacx_lib/full_meta.json'
-
-# gaze path datasets paths
-reflacx_gaze_patch_dataset_root = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx'
-reflacx_gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
-mimic_gaze_patch_dataset_root = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/mimic_eye'
-mimic_gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/mimic_eye/0.037_0.035_pad31__resize256'
 
 dataset_type = 'reflacx'
 assert dataset_type in ('reflacx', 'mimic')
@@ -57,7 +45,7 @@ epochs = 100
 store_best_model = True
 store_last_model = True
 #stored_model_pth = '.'
-stored_model_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/models'
+stored_model_pth = '.'
 
 #### feature extraction
 from feature_extraction.pretrained import pyramid_feature_extractor
