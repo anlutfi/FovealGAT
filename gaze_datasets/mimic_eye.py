@@ -12,7 +12,7 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
                  target_label,
                  target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
                  mode='train',
-                 train_test_split=1.0,
+                 train_val_test_split=1.0,
                  transform=identity):
         """param:dataset_path is the directory containing the mimic eye gaze_patch raw data
             param:target_labels is the label for a desired anomaly within those present in mimic eye to return as ground truths
@@ -24,7 +24,7 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
                          target_label,
                          target_fixation_keys,
                          mode,
-                         train_test_split,
+                         train_val_test_split,
                          transform)
         self.init_labels()
 

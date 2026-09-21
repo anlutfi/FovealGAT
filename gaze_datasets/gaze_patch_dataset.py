@@ -11,7 +11,8 @@ class GazePatchDataset(Dataset):
     """
     train = 'train'
     test = 'test'
-    modes = (train, test)
+    val = 'val'
+    modes = (train, test, val)
 
     @staticmethod
     def load_sort_fnames(pth):
@@ -25,7 +26,7 @@ class GazePatchDataset(Dataset):
                  target_label,
                  target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
                  mode='train',
-                 train_test_split=1.0,
+                 train_val_test_split=1.0,
                  transform=identity):
         """param:dataset_path is the directory containing the dataset gaze_patch raw data
            param:target_labels is a list of anomalies within those present in the dataset to return as ground truths
@@ -46,7 +47,15 @@ class GazePatchDataset(Dataset):
         self.labels_path = os.path.sep.join([dataset_path, 'labels'])
         self.target_label = target_label
         self.target_fixation_keys = target_fixation_keys
-        self.train_test_split = train_test_split
+
+        assert train_val_test_split.__class__ in (float, int, list)
+        if train_val_test_split.__class__ in(float, int):
+            assert int(train_val_test_split) == 1
+            train_val_test_split = [1.0, 0.0, 0.0]
+        else:
+            assert len(train_val_test_split) == 3 
+            assert int(sum(train_val_test_split)) == 1
+        self.train_val_test_split = train_val_test_split
         self.transform = transform
         self.fixations = GazePatchDataset.load_sort_fnames(self.fixations_path)
 
@@ -56,17 +65,21 @@ class GazePatchDataset(Dataset):
 
         self.labels = None
         self.split_idxs = None
-        self.train_split_idxs = torch.tensor([])
-        self.test_split_idxs = torch.tensor([])
+        self.train_idxs = torch.tensor([])
+        self.val_idxs = torch.tensor([])
+        self.test_idxs = torch.tensor([])
 
         self.mode = None
         self.set_mode(mode)
         
 
     def assign_split_idxs(self):
-        self.split_idxs = (self.train_split_idxs
-                           if self.mode == GazePatchDataset.train
-                           else self.test_split_idxs)
+        if self.mode == GazePatchDataset.train:
+            self.split_idxs = self.train_idxs
+        if self.mode == GazePatchDataset.val:
+            self.split_idxs = self.val_idxs
+        if self.mode == GazePatchDataset.test:
+            self.split_idxs = self.test_idxs
 
 
     def set_mode(self, mode):
@@ -78,30 +91,41 @@ class GazePatchDataset(Dataset):
 
 
     def shuffle(self):
-        if self.mode == GazePatchDataset.train and self.train_test_split == 1.0:
-            self.train_split_idxs = torch.tensor(range(len(self.labels)))
-            self.test_split_idxs = torch.tensor([])
+        if self.mode == GazePatchDataset.train and self.train_val_test_split[0] == 1.0:
+            self.train_idxs = torch.tensor(range(len(self.labels)))
+            self.val_idxs = torch.tensor([])
+            self.test_idxs = torch.tensor([])
 
-        elif self.mode == GazePatchDataset.test and self.train_test_split == 0.0:
-            self.train_split_idxs = torch.tensor([])
-            self.test_split_idxs = torch.tensor(range(len(self.labels)))
+        elif self.mode == GazePatchDataset.test and self.train_val_test_split[1] == 1.0:
+            self.train_idxs = torch.tensor([])
+            self.val_idxs = torch.tensor(range(len(self.labels)))
+            self.test_idxs = torch.tensor([])
+
+        elif self.mode == GazePatchDataset.test and self.train_val_test_split[2] == 1.0:
+            self.train_idxs = torch.tensor([])
+            self.val_idxs = torch.tensor([])
+            self.test_idxs = torch.tensor(range(len(self.labels)))
             
         # if there is a non 100% split, stratify and shuffle dataset
         else:
             domain = torch.unique(self.labels)
-            self.train_split_idxs = []
-            self.test_split_idxs = []
+            self.train_idxs = []
+            self.val_idxs = []
+            self.test_idxs = []
 
             for v in domain:
                 idxs = torch.where(self.labels == v)[0]
                 idxs = idxs[torch.randperm(len(idxs))]
-                cutoff = int(len(idxs) * self.train_test_split)
+                cutoff_train = int(len(idxs) * self.train_val_test_split[0])
+                cutoff_val = cutoff_train + int(len(idxs) * self.train_val_test_split[1])
+                
+                self.train_idxs.append(idxs[:cutoff_train])
+                self.val_idxs.append(idxs[cutoff_train:cutoff_val])
+                self.test_idxs.append(idxs[cutoff_val:])
 
-                self.train_split_idxs.append(idxs[:cutoff])
-                self.test_split_idxs.append(idxs[cutoff:])
-
-            self.train_split_idxs = torch.cat(self.train_split_idxs)
-            self.test_split_idxs = torch.cat(self.test_split_idxs)
+            self.train_idxs = torch.cat(self.train_idxs)
+            self.val_idxs = torch.cat(self.val_idxs)
+            self.test_idxs = torch.cat(self.test_idxs)
                 
         self.assign_split_idxs()
 
@@ -121,8 +145,11 @@ class GazePatchDataset(Dataset):
         if self.split_idxs is not None:
             return len(self.split_idxs)
         if self.mode == GazePatchDataset.train:
-            return int(len(self.fixations) * self.train_test_split)
-        return int(len(self.fixations) * (1 - self.train_test_split))
+            return int(len(self.fixations) * self.train_test_split[0])
+        elif self.mode == GazePatchDataset.val:
+            return int(len(self.fixations) * self.train_test_split[1])
+        elif self.mode == GazePatchDataset.test:
+            return int(len(self.fixations) * (self.train_test_split[2]))
 
 
     def __getitem__(self, i):
