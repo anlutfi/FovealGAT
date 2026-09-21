@@ -13,6 +13,8 @@ The following steps explain each component of the workflow and architecture nece
 
 This work uses both the [REFLACX](https://physionet.org/content/reflacx-xray-localization/1.0.0/) and [MIMIC Eye](https://physionet.org/content/mimic-eye-multimodal-datasets/1.0.0/) datasets. As they require certification to be accessed, they have to be obtained from their original sources.
 
+REFLACX uses a subset of CXRs from [MIMIC-CXR](https://physionet.org/content/mimic-cxr/2.0.0/), so it also needs to be downloaded.
+
 ### 1. Converting CXRs datasets to a gaze sequence
 
 In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation.
