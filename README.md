@@ -13,35 +13,35 @@ In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze dataset
 
 ### 2. Loading new datasets to torch dataset classes
 
-After conversion, we need to load the newly created gaze patch datasets into pytorch datasets. [Pytorch Datasets ReadMe](./gaze_datasets/readme.html)
+After conversion, we need to load the newly created gaze patch datasets into pytorch datasets. [Pytorch Datasets ReadMe](./gaze_datasets/README.md)
 
 ### 3. Feature Extraction
 
-We're using pretrained pyramid vision feature extraction, similar to gazegnn and vit. however, since we are working with small gaze patches, compared to the whole image, we need to limit the convolutions. Failing to do so, will try to extract features that need a larger size than the gazepatch can provide. [Feature Extraction ReadMe](./feature_extraction/readme.html)
+We're using pretrained pyramid vision feature extraction, similar to gazegnn and vit. however, since we are working with small gaze patches, compared to the whole image, we need to limit the convolutions. Failing to do so, will try to extract features that need a larger size than the gazepatch can provide. [Feature Extraction ReadMe](./feature_extraction/README.md)
 
 ### 4. Adding encodings for sequence position, [X, Y], and fixation duration (t)
 
-With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation's (X, Y) position within the CXR and time duration. [Encodings ReadMe](./node_encodings/readme.html)
+With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation's (X, Y) position within the CXR and time duration. [Encodings ReadMe](./node_encodings/README.md)
 
 ### 5. GazeOnlyGAT
 
-With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component. [GazeOnlyGAT ReadMe](./model/readme.html)
+With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component. [GazeOnlyGAT ReadMe](./model/README.md)
 
 #### 5.1 GAT Layer
 
-The first component is the Graph Attention Convolution Layer. [GAT Layer ReadMe](./model/readme.html#gat_layer)
+The first component is the Graph Attention Convolution Layer. [GAT Layer ReadMe](./model/README.md#gat_layer)
 
 #### 5.2 GazeGrapher
 
-GazeGrapher is a module that aggregates several GAT layers in sequence, performing all graph convolutions before graph readout and prediction. [GazeGrapher ReadMe](./model/readme.html#grapher)
+GazeGrapher is a module that aggregates several GAT layers in sequence, performing all graph convolutions before graph readout and prediction. [GazeGrapher ReadMe](./model/README.md#grapher)
 
 #### 5.3 Readout
 
-Since we are dealing with complete causal graphs --each node sees ALL of its predecessors and itself-- we developed a causal graph readout. All information is aggregated by the last node at each convolution. So, we take the last node of each selected residual graph, concatenate them, and run them through a linear layer. [Readout ReadMe](./model/readme.html#readout)
+Since we are dealing with complete causal graphs --each node sees ALL of its predecessors and itself-- we developed a causal graph readout. All information is aggregated by the last node at each convolution. So, we take the last node of each selected residual graph, concatenate them, and run them through a linear layer. [Readout ReadMe](./model/README.md#readout)
 
 #### 5.4 Whole pipeline
 
-Since we now have all individual components, we are ready to run the full model. [Full Model ReadMe](./model/readme.html#full)
+Since we now have all individual components, we are ready to run the full model. [Full Model ReadMe](./model/README.md#full)
 
 ### 6. Gradient Test
 
