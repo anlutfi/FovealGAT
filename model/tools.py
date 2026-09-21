@@ -21,10 +21,14 @@ def adjust_args(args):
     return args
 
 
+# TODO maybe put this in an general params file
 classes_to_init = [nn.Conv2d,
                    nn.Conv1d]
 
 def init_weights(model, init_f, classes=classes_to_init):
+    """initializes param:model's weights by applying param_init_f
+    only initializes modules of the classes in classes_to_init
+    """
     if (reduce(lambda x, y: x or y, [isinstance(model, c) for c in classes])):
         init_f(model.weight)
         model.weight.requires_grad = True

@@ -17,7 +17,7 @@ class ReflacxGazePatchDataset(GazePatchDataset):
                  train_test_split=1.0,
                  transform=identity):
         """param:dataset_path is the directory containing the reflacx gaze_patch raw data
-           param:target_labels is a list of anomalies within those present in REFLACX to return as ground truths
+           param:target_labels is the label for a desired anomaly within those present in REFLACX to return as ground truths
            param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
            param:mode train or test
            param:transform which transformations are to be performed on each gaze patch

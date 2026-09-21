@@ -15,6 +15,14 @@ def make_MIMIC_EYE_gazepatch_dataset(mimic_path,
                                      y_norm_radius,
                                      img_resize,
                                      padding=None):
+    """Converts MIMIC Eye dataset into a gaze patch dataset
+    param:mimic_path path with MIMIC Eye raw data
+    param:out_path path to the generated gaze path dataset
+    param:x_norm_radius half of the patch horizontal size, in proportion to whole image's width
+    param:y_norm_radius half of the patch vetical size, in proportion to whole image's height
+    param:img_resize resized image's size vefore cropping the patches
+    param:padding final patch size, to be achieved with zero padding
+    """
     print('Loading MIMIC fixations csv')
     csv = pd.read_csv(os.path.join(mimic_path, "gaze","fixations.csv"))
 

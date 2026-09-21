@@ -21,7 +21,7 @@ class GazePatchFeatureExtractor(nn.Module):
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
         self.act = act()
-        self.tail = tail_feat_ext()
+        self.tail = tail_feat_ext().to(device)
 
         self.head = nn.Sequential(nn.BatchNorm2d(in_channels,
                                                  eps=1e-05,
@@ -73,6 +73,7 @@ class GazePatchFeatureExtractor(nn.Module):
                                                  bias=bias,
                                                  track_running_stats=True))
 
+        # tail is pre-trained, so no weight init
         self.head.apply(lambda m: init_weights(m, w_init_f))
         
                 

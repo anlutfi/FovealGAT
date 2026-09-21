@@ -7,10 +7,6 @@ from gaze_datasets.gaze_patch_dataset import GazePatchDataset
 
 
 class MimicEyeGazePatchDataset(GazePatchDataset):
-    label_dict={'CHF': 0,
-                'pneumonia': 1,
-                'Normal': 2}
-
     def __init__(self,
                  dataset_path,
                  target_label,
@@ -18,6 +14,12 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
                  mode='train',
                  train_test_split=1.0,
                  transform=identity):
+        """param:dataset_path is the directory containing the mimic eye gaze_patch raw data
+            param:target_labels is the label for a desired anomaly within those present in mimic eye to return as ground truths
+            param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
+            param:mode train or test
+            param:transform which transformations are to be performed on each gaze patch
+        """
         super().__init__(dataset_path,
                          target_label,
                          target_fixation_keys,

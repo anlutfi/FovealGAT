@@ -24,6 +24,10 @@ class GATConv(nn.Module):
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
                  device='cpu'):
+        """A Graph Attention Convolution Layer
+        param:act_att activation function for the attention scores
+        param:act_gat activation function for the node update
+        """
         super(GATConv, self).__init__()
         self.device = device
         self.act_att = act_att
@@ -75,7 +79,9 @@ class CausalGATConv(GATConv):
                          bias,
                          w_init_f,
                          device)
-
+    """A GATConv layer for a causal graph,
+    where each node sees only itself and their predecessors
+    """
     def forward(self, x):
         nodes, splits = x
         # normalize graph
@@ -136,7 +142,8 @@ class FullGATConv(GATConv):
                              bias,
                              w_init_f,
                              device)
-    
+    """A GATConv layer for a complete graph
+    """
     def forward(self, x):
         nodes, splits = x
         # normalize graph

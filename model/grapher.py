@@ -20,7 +20,13 @@ class GazeGrapher(nn.Module):
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
                  device='cpu'):
-
+        """A module that applies a series of graph convolutions
+        param:gat_conv which type of convolution to apply among those in model.GATConv
+        param:readout_gat_levels a list of indices of the layers' outputs to be returned by forward
+        param:channels a list of input channels, each pair will correspond to a convolution layer. ALL PARAMS from att_heads to bias need to be either a single value or a list of values OF THE SAME LENGTH as channels
+        param:act_att activation function for the attention scores of each convolution layer. if a single value, it will be replicated for all
+        param:act_gat activation function for the node update of each convolution layer. if a single value, it will be replicated for all
+        """
         (channels,
          att_heads,
          act_att,
