@@ -1,5 +1,10 @@
 ### GazeOnlyGAT: components overview
 
+
+```python
+import only_gaze_confs as conf
+```
+
 With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component.
 
 
@@ -22,7 +27,7 @@ from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
 
-gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
+gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
 splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))

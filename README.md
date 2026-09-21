@@ -50,6 +50,11 @@ Since we are dealing with complete causal graphs --each node sees ALL of its pre
 
 Since we now have all individual components, we are ready to run the full model. [Full Model ReadMe](./model/README.md#full)
 
+
+```python
+import only_gaze_confs as conf
+```
+
 ### 6. Gradient Test
 
 We can now test the model's capacity of proper backpropagation
@@ -72,7 +77,7 @@ fetch sample data batch
 from gaze_datasets.reflacx import ReflacxGazePatchDataset
 from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 
-gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
+gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
 fs, gsp, labels = ds[33]

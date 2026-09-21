@@ -2,15 +2,20 @@
 
 In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation
 
+
+```python
+import only_gaze_confs as conf
+```
+
 #### -REFLACX
+
+In order to run this notebook, you need to import the Metadata class from [the reflacx_lib repo](https://github.com/anlutfi/reflacx_lib)
 
 
 ```python
-reflacx_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/reflacx'
-mimic_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/mimic/reflacx_imgs'
-full_meta_json = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/reflacx_lib/full_meta.json'
-
-reflacx_gaze_patch_dataset_root = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx'
+reflacx_dir = conf.reflacx_dir
+mimic_dir = conf.mimic_dir
+full_meta_json = conf.full_meta_json
 ```
 
 
@@ -48,7 +53,7 @@ set resulting dataset path
 
 
 ```python
-dataset_path = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx'
+dataset_path = conf.reflacx_gaze_patch_dataset_root
 ```
 
 the function below does the whole operation. it returns the largest sizes for gaze patches
@@ -75,7 +80,7 @@ if make_dataset:
 
 ```python
 if not make_dataset:
-    bb = 31
+    bb = [31]
 ```
 
 largest bb dims: 31 31, so all gaze patches will need to be padded to be 31 x 31.
@@ -88,8 +93,14 @@ pad
 
 
 ```python
+import os
+```
+
+
+```python
 #TODO un-hardcode
-gaze_path_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256/gaze_patches'
+new_dataset_root = os.path.sep.join([dataset_path, '{}_ang_res_{}'.format(qtt_ang_res, img_resize)])
+gaze_path_dir = os.path.sep.join([new_dataset_root, 'gaze_patches'])
 ```
 
 
@@ -109,8 +120,8 @@ MIMIC does not provide an angular resolution for each fixation, so we will use t
 
 
 ```python
-fixations_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256/fixations'
-mimic_dir = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/mimic_part_jpg'
+fixations_dir = os.path.sep.join([new_dataset_root, 'fixations'])
+mimic_dir = conf.mimic_part_dir
 ```
 
 
@@ -150,7 +161,7 @@ set output directory for new dataset
 
 
 ```python
-out_path = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/mimic_eye'
+out_path = conf.mimic_gaze_patch_dataset_root
 ```
 
 set padding to be the same as in REFLACX gaze patch dataset

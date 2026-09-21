@@ -2,6 +2,11 @@
 
 After conversion, we need to load the newly created gaze patch datasets into pytorch datasets.
 
+
+```python
+import only_gaze_confs as conf
+```
+
 #### REFLACX
 
 
@@ -11,7 +16,7 @@ from reflacx import ReflacxGazePatchDataset
 
 
 ```python
-gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
+gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ```
 
@@ -110,7 +115,7 @@ from mimic_eye import MimicEyeGazePatchDataset
 
 
 ```python
-gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/mimic_eye/0.037_0.035_pad31__resize256'
+gaze_dataset_pth = conf.mimic_gaze_dataset_pth
 desired_label = 'pneumonia'
 ```
 

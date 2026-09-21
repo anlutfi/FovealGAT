@@ -2,6 +2,11 @@
 
 
 ```python
+import only_gaze_confs as conf
+```
+
+
+```python
 import torch
 ```
 
@@ -17,7 +22,7 @@ print(device)
 
 
 ```python
-gazedataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
+gazedataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ```
 

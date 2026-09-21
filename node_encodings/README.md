@@ -1,5 +1,10 @@
 ### Adding encodings for sequence position, [X, Y], and fixation duration
 
+
+```python
+import only_gaze_confs as conf
+```
+
 With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation (X, Y) position within the CXR and time duration.
 
 regular sine cosine positional encoding
@@ -16,7 +21,7 @@ seq_encoding_featcount = 16
 
 
 ```python
-gazedataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
+gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 ```
 
 
@@ -25,7 +30,7 @@ gazedataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaz
 import json
 import os
 
-fix_dir = os.path.sep.join([gazedataset_pth, 'fixations'])
+fix_dir = os.path.sep.join([gaze_dataset_pth, 'fixations'])
 
 max_len = 0
 for rid in os.listdir(fix_dir):
@@ -35,13 +40,6 @@ for rid in os.listdir(fix_dir):
 
 max_len
 ```
-
-
-
-
-    386
-
-
 
 
 ```python
@@ -62,7 +60,6 @@ from gaze_datasets.reflacx import ReflacxGazePatchDataset
 from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 from feature_extraction.extractors import GazePatchFeatureExtractor
 
-gaze_dataset_pth = '/media/antonio/ubuntail/Dropbox/education/phd/thesis/data/gaze_patch_datasets/reflacx/1_ang_res_256'
 desired_label = 'Atelectasis'
 ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
 fs, gsp, labels = ds[33]
