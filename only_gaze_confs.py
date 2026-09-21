@@ -1,4 +1,4 @@
-## ADJUST BEFORE RUNNING NOTEBOOKS
+## ADJUST BEFORE RUNNING NOTEBOOKS AND TRAINNING
 
 # raw data paths
 reflacx_dir = '.../data/reflacx'

@@ -133,3 +133,5 @@ for name, _ in model.named_parameters():
 ```
 
 ### 7. Trainning
+
+First thing is setting model and treinning parameters in [the configuration file](./only_gaze_confs.py)
