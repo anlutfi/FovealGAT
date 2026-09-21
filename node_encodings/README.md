@@ -29,15 +29,9 @@ gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 # get longest gaze sequence in dataset
 import json
 import os
+from gaze_datasets.dataset_tools import max_fixation_sequence_len
 
-fix_dir = os.path.sep.join([gaze_dataset_pth, 'fixations'])
-
-max_len = 0
-for rid in os.listdir(fix_dir):
-    pth = os.path.sep.join([fix_dir, rid])
-    with open(pth) as fp:
-        max_len = max(max_len, len(json.load(fp)))
-
+max_len = max_fixation_sequence_len(gaze_dataset_pth)
 max_len
 ```
 

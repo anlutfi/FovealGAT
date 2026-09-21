@@ -82,7 +82,6 @@ from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
-fs, gsp, labels = ds[33]
 splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))
 ```
 
