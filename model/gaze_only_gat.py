@@ -26,7 +26,7 @@ class GazeOnlyGAT(nn.Module):
                  gat_bias=True,
                  ro_hidden_features=[1024, 1024, 1024],
                  out_channels = 1,
-                 ro_hidden_act=nn.GELU,
+                 ro_act=nn.GELU,
                  ro_pred_act=nn.Identity,
                  ro_dropout=0.0,
                  ro_norm=nn.BatchNorm1d,
@@ -55,10 +55,10 @@ class GazeOnlyGAT(nn.Module):
                                    device=device)
 
         ro_in_channels = sum([gat_channels[i] for i in readout_gat_levels])
-        self.readout = readout(ro_in_channels,
-                               ro_hidden_features,
+        ro_channels = [ro_in_channels] + ro_hidden_features
+        self.readout = readout(ro_channels,
                                out_channels,
-                               ro_hidden_act,
+                               ro_act,
                                ro_pred_act,
                                ro_dropout,
                                ro_norm,

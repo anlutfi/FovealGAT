@@ -6,10 +6,9 @@ from model.tools import adjust_args, init_weights
 
 class CausalReadout(nn.Module):
     def __init__(self,
-                 in_channels,
-                 hidden_features=[1024, 1024, 1024],
+                 channels=[335, 512, 256, 128, 64],
                  out_channels = 1,
-                 hidden_act=nn.GELU,
+                 act=nn.GELU,
                  pred_act=nn.Identity,
                  dropout=0.0,
                  norm=nn.BatchNorm1d,
@@ -28,42 +27,33 @@ class CausalReadout(nn.Module):
         self.device = device
         self.act = pred_act()
 
-        (hidden_features,
-         hidden_act,
+        (channels,
+         act,
          dropout,
          norm,
-         bias) = adjust_args([hidden_features,
-                              hidden_act,
+         bias) = adjust_args([channels,
+                              act,
                               dropout,
                               norm,
                               bias])
 
-        self.mlp = nn.Sequential(OrderedDict([('fc1', nn.Conv1d(in_channels,
-                                                                hidden_features[0],
-                                                                1,
-                                                                bias=bias[0],
-                                                                device=device))]))
+        self.mlp = nn.Sequential()
+        
 
-        for i, (feats, a, drop, n, b) in enumerate(zip(hidden_features,
-                                                       hidden_act,
-                                                       dropout,
-                                                       norm,
-                                                       bias),
-                                                start=1):
-            self.mlp.add_module('norm{}'.format(i), n(feats, device=device))
-            self.mlp.add_module('act{}'.format(i), a())
-            self.mlp.add_module('drop{}'.format(i), nn.Dropout(drop))
-            if i < len(hidden_features):
-                self.mlp.add_module('fc{}'.format(i + 1), nn.Conv1d(feats,
-                                                                    feats,
-                                                                    1,
-                                                                    bias=b,
-                                                                    device=device))
-            else:
-                self.mlp.add_module('prediction', nn.Conv1d(feats,
+        for i in range(1, len(channels)):
+            self.mlp.add_module('fc{}'.format(i - 1), nn.Conv1d(channels[i - 1],
+                                                                channels[i],
+                                                                1,
+                                                                bias=bias[i - 1],
+                                                                device=device))
+            self.mlp.add_module('norm{}'.format(i), norm[i - 1](channels[i], device=device))
+            self.mlp.add_module('act{}'.format(i), act[i - 1]())
+            self.mlp.add_module('drop{}'.format(i), nn.Dropout(dropout[i - 1]))
+            if i == len(channels) - 1:
+                self.mlp.add_module('prediction', nn.Conv1d(channels[i],
                                                             out_channels,
                                                             1,
-                                                            bias=b,
+                                                            bias=bias[i],
                                                             device=device))
 
         self.mlp.apply(lambda m: init_weights(m, w_init_f))
