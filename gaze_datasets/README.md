@@ -1,4 +1,4 @@
-### Loading Gaze Patch Datasets
+## Loading Gaze Patch Datasets
 
 After conversion, we need to load the newly created gaze patch datasets into pytorch datasets.
 
@@ -7,7 +7,7 @@ After conversion, we need to load the newly created gaze patch datasets into pyt
 import only_gaze_confs as conf
 ```
 
-#### REFLACX
+### REFLACX
 
 
 ```python
@@ -101,7 +101,7 @@ ls, sum(ls)
 fs.shape, ps.shape, labels.shape
 ```
 
-#### MIMIC EYE
+### MIMIC EYE
 
 
 ```python

@@ -1,4 +1,4 @@
-### Adding encodings for sequence position, [X, Y], and fixation duration
+## Adding encodings for sequence position, [X, Y], and fixation duration
 
 
 ```python

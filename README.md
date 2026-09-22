@@ -1,4 +1,4 @@
-## GazeOnlyGat: Chest X-Rays (CXRs) as a sequence of gaze fixations
+# GazeOnlyGat: Chest X-Rays (CXRs) as a sequence of gaze fixations
 
 To the best of our knowledge, all multimodal machine learning models that use visual gaze data, use it to enrich the image. This, however, is not how our brains build the image's representation. We capture and interpret it via a sequence of eye fixations and movements.
 
@@ -9,50 +9,50 @@ This work experiments with this concept in the specific context of chest x-rays.
 
 The following steps explain each component of the workflow and architecture necessary to understand and replicate this experiment.
 
-### 0. Obtain CXR Gaze Datasets
+## 0. Obtain CXR Gaze Datasets
 
 This work uses both the [REFLACX](https://physionet.org/content/reflacx-xray-localization/1.0.0/) and [MIMIC Eye](https://physionet.org/content/mimic-eye-multimodal-datasets/1.0.0/) datasets. As they require certification to be accessed, they have to be obtained from their original sources.
 
 REFLACX uses a subset of CXRs from [MIMIC-CXR](https://physionet.org/content/mimic-cxr/2.0.0/), so it also needs to be downloaded.
 
-### 1. Converting CXRs datasets to a gaze sequence
+## 1. Converting CXRs datasets to a gaze sequence
 
 In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation.
 [Dataset Conversion ReadMe](./gaze_dataset_convert/README.md)
 
-### 2. Loading new datasets to torch dataset classes
+## 2. Loading new datasets to torch dataset classes
 
 After conversion, we need to load the newly created gaze patch datasets into pytorch datasets. [Pytorch Datasets ReadMe](./gaze_datasets/README.md)
 
-### 3. Feature Extraction
+## 3. Feature Extraction
 
 We're using pretrained pyramid vision feature extraction, similar to gazegnn and vit. however, since we are working with small gaze patches, compared to the whole image, we need to limit the convolutions. Failing to do so, will try to extract features that need a larger size than the gazepatch can provide. [Feature Extraction ReadMe](./feature_extraction/README.md)
 
-### 4. Adding encodings for sequence position, [X, Y], and fixation duration (t)
+## 4. Adding encodings for sequence position, [X, Y], and fixation duration (t)
 
 With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation's (X, Y) position within the CXR and time duration. [Encodings ReadMe](./node_encodings/README.md)
 
-### 5. GazeOnlyGAT
+## 5. GazeOnlyGAT
 
 With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component. [GazeOnlyGAT ReadMe](./model/README.md)
 
-#### 5.1 GAT Layer
+### 5.1 GAT Layer
 
 The first component is the Graph Attention Convolution Layer. [GAT Layer ReadMe](./model/README.md#gat_layer)
 
-#### 5.2 GazeGrapher
+### 5.2 GazeGrapher
 
 GazeGrapher is a module that aggregates several GAT layers in sequence, performing all graph convolutions before graph readout and prediction. [GazeGrapher ReadMe](./model/README.md#grapher)
 
-#### 5.3 Readout
+### 5.3 Readout
 
 Since we are dealing with complete causal graphs --each node sees ALL of its predecessors and itself-- we developed a causal graph readout. All information is aggregated by the last node at each convolution. So, we take the last node of each selected residual graph, concatenate them, and run them through a linear layer. [Readout ReadMe](./model/README.md#readout)
 
-#### 5.4 Whole pipeline
+### 5.4 Whole pipeline
 
 Since we now have all individual components, we are ready to run the full model. [Full Model ReadMe](./model/README.md#full)
 
-### 6. Training
+## 6. Training
 
 First thing is setting model and training parameters in [the configuration file](./only_gaze_confs.py)
 

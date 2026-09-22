@@ -1,4 +1,4 @@
-### Converting CXR datasets to Gaze Patch Datasets
+## Converting CXR datasets to Gaze Patch Datasets
 
 In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation
 
@@ -7,7 +7,7 @@ In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze dataset
 import only_gaze_confs as conf
 ```
 
-#### -REFLACX
+### -REFLACX
 
 In order to run this notebook, you need to import the Metadata class from [the reflacx_lib repo](https://github.com/anlutfi/reflacx_lib)
 
@@ -114,7 +114,7 @@ if make_dataset:
     pad_gaze_patches(pad, gaze_path_dir)
 ```
 
-#### -MIMIC Eye
+### -MIMIC Eye
 
 MIMIC does not provide an angular resolution for each fixation, so we will use the average angular resolution from REFLACX
 

@@ -1,4 +1,4 @@
-### GazeOnlyGAT: components overview
+## GazeOnlyGAT: components overview
 
 
 ```python
@@ -47,7 +47,7 @@ nodes.shape, sum([x.shape[1]for x in (seqs, fixations, feats)])
 ns = nodes.squeeze(-1).squeeze(-1).permute((1, 0))
 ```
 
-#### GAT Layer
+### GAT Layer
 <a id="gat_layer"></a>
 
 The first component is the Graph Attention Convolution Layer.
@@ -78,7 +78,7 @@ conv_nodes = gcnn((ns, splits))
 conv_nodes.shape
 ```
 
-#### GazeGrapher
+### GazeGrapher
 <a id="grapher"></a>
 
 GazeGrapher is a module that aggregates several GAT layers in sequence, performing all graph convolutions before graph readout and prediction.
@@ -118,7 +118,7 @@ graphs = grapher((ns, splits)) # output is all selected residual graphs by resid
 [g.shape for g in graphs]
 ```
 
-#### Readout
+### Readout
 <a id="readout"></a>
 
 Since we are dealing with complete causal graphs --each node sees ALL of its predecessors and itself-- we developed a causal graph readout. All information is aggregated by the last node at each convolution. So, we take the last node of each graph selected by residual_gat_levels, concatenate them, and run them through linear layers, outputting the final predictions.
@@ -157,7 +157,7 @@ predictions = causal_ro((graphs, splits))
 predictions.shape, labels.shape
 ```
 
-#### Whole pipeline
+### Whole pipeline
 <a id="full"></a>
 
 Since we now have all individual components, we are ready to run the full model.
