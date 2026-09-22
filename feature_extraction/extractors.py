@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 from feature_extraction.pretrained import pyramid_feature_extractor
-from model.tools import init_weights
+from model.tools import init_weights, adjust_args
 
 
 class GazePatchFeatureExtractor(nn.Module):
@@ -9,69 +9,45 @@ class GazePatchFeatureExtractor(nn.Module):
     """
     def __init__(self,
                  tail_feat_ext=pyramid_feature_extractor,
-                 in_channels=48,
-                 out_channels=48,
+                 channels=[48, 128, 128, 128, 128],
                  act=nn.GELU,
+                 norm=nn.BatchNorm2d,
                  bias=True,
                  w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
                  device='cpu'):
         """param:tail_feat_ext is a pre-trained pyramid vision feature extractor
         this model expects a 31*31 gaze patch
         """
+        channels, act, norm, bias = adjust_args([channels, act, norm, bias])
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
-        self.act = act()
         self.tail = tail_feat_ext().to(device)
 
-        self.head = nn.Sequential(nn.BatchNorm2d(in_channels,
-                                                 eps=1e-05,
-                                                 momentum=0.1,
-                                                 affine=True,
-                                                 bias=bias,
-                                                 track_running_stats=True),
-                                  nn.Conv2d(in_channels,
-                                            2 * in_channels,
-                                            (3, 3),
-                                            bias=bias),
-                                  nn.BatchNorm2d(2 * in_channels,
-                                                 eps=1e-05,
-                                                 momentum=0.1,
-                                                 affine=True,
-                                                 bias=bias,
-                                                 track_running_stats=True),
-                                  self.act,
-                                  nn.Conv2d(2 * in_channels,
-                                            2 * in_channels,
-                                            (3, 3),
-                                            bias=bias),
-                                  nn.BatchNorm2d(2 * in_channels,
-                                                 eps=1e-05,
-                                                 momentum=0.1,
-                                                 affine=True,
-                                                 bias=bias,
-                                                 track_running_stats=True),
-                                  self.act,
-                                  nn.Conv2d(2 * in_channels,
-                                            2 * in_channels,
-                                            (3, 3),
-                                            bias=bias),
-                                  nn.BatchNorm2d(2 * in_channels,
-                                                 eps=1e-05,
-                                                 momentum=0.1,
-                                                 affine=True,
-                                                 bias=bias,
-                                                 track_running_stats=True),
-                                  self.act,
-                                  nn.Conv2d(2 * in_channels,
-                                            out_channels,
-                                            (2, 2),
-                                            bias=bias),
-                                  nn.BatchNorm2d(out_channels,
-                                                 eps=1e-05,
-                                                 momentum=0.1,
-                                                 affine=True,
-                                                 bias=bias,
-                                                 track_running_stats=True))
+        self.head = nn.Sequential().to(device)
+        self.head.add_module('norm_0', norm[0](channels[0],
+                                               eps=1e-05,
+                                               momentum=0.1,
+                                               affine=True,
+                                               bias=bias[0],
+                                               track_running_stats=True).to(device))
+        self.head.add_module('act_0', act[0]().to(device))
+                
+        for i, chnn in enumerate(channels[1:], start=1):
+            self.head.add_module('conv_{}'.format(i),
+                                 nn.Conv2d(channels[i - 1],
+                                           chnn,
+                                           (3, 3) if i < 4 else (2, 2),
+                                           bias=bias[i]).to(device))
+            self.head.add_module('norm_{}'.format(i),
+                                 norm[i](chnn,
+                                         eps=1e-05,
+                                         momentum=0.1,
+                                         affine=True,
+                                         bias=bias[i],
+                                         track_running_stats=True).to(device))
+            self.head.add_module('act_{}'.format(i),
+                                  act[i]().to(device))
+                                  
 
         # tail is pre-trained, so no weight init
         self.head.apply(lambda m: init_weights(m, w_init_f))
@@ -84,5 +60,4 @@ class GazePatchFeatureExtractor(nn.Module):
         if c == 1:
             x = torch.tile(x, (1, 3, 1, 1))
 
-        x = self.act(self.tail(x))
-        return self.head(x)
+        return self.head(self.tail(x))
