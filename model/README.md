@@ -7,21 +7,11 @@ import only_gaze_confs as conf
 
 With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component.
 
-
-```python
-import torch
-if torch.cuda.is_available():
-    device = 'cuda:0'
-else:
-    device = 'cpu'
-
-print(device)
-```
-
 Fetch sample batch
 
 
 ```python
+import torch
 from gaze_datasets.reflacx import ReflacxGazePatchDataset
 from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 from feature_extraction.extractors import GazePatchFeatureExtractor
@@ -32,14 +22,21 @@ desired_label = 'Atelectasis'
 ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
 splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))
 
-feat_ext = GazePatchFeatureExtractor().to(device)
-feats = feat_ext(patches.to(device))
+feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
+                                     conf.fe_channels,
+                                     conf.fe_act,
+                                     conf.fe_norm,
+                                     conf.fe_bias,
+                                     conf.fe_w_init_f,
+                                     conf.device)
+feats = feat_ext(patches.to(conf.device))
 
-max_len = 386
-seq_encoding_featcount = 16
+max_len = conf.reflacx_max_len
+seq_encoding_featcount = conf.seq_encoding_feat_count
+
 seq_encoding = GazeSinCosPosEncoding(max_len, seq_encoding_featcount)
-seqs = seq_encoding(splits, adjust_dim=True).to(device)
-fixations = fixations.to(device)
+seqs = seq_encoding(splits, adjust_dim=True).to(conf.device)
+fixations = fixations.to(conf.device)
 
 nodes = torch.cat([fixations, seqs, feats], 1).float()
 nodes.shape, sum([x.shape[1]for x in (seqs, fixations, feats)])
@@ -72,7 +69,7 @@ att_heads = 4
 gcnn = CausalGATConv(ns.shape[0],
                ns.shape[0],
                att_heads,
-               device=device)
+               device=conf.device)
 ```
 
 
@@ -97,7 +94,7 @@ We need input sizes for each of the graphs GAT Layers, and the residual layers' 
 
 
 ```python
-channels = [67, 134, 134, 134, 67] # input size and 4 GAT convolution layers
+gat_channels = [conv_nodes.shape[0], 134, 134, 134, 67] # input size and 4 GAT convolution layers
 residual_gat_levels = [1, 2, 4]
 gat_conv = CausalGATConv
 ```
@@ -109,9 +106,9 @@ from grapher import GazeGrapher
 
 
 ```python
-grapher = GazeGrapher(channels=channels,
+grapher = GazeGrapher(channels=gat_channels,
                       readout_gat_levels=residual_gat_levels,
-                      device=device)
+                      device=conf.device)
 grapher
 ```
 
@@ -133,8 +130,25 @@ from readout import CausalReadout
 
 
 ```python
-causal_ro = CausalReadout(sum([g.shape[0] for g in graphs]),
-                          device=device)
+sum([g.shape[0] for g in graphs])
+```
+
+
+```python
+ro_channels=conf.ro_channels
+ro_channels[0] = sum([g.shape[0] for g in graphs])
+```
+
+
+```python
+causal_ro = CausalReadout(channels=ro_channels,
+                          dropout=conf.ro_dropout,
+                          device=conf.device)
+```
+
+
+```python
+causal_ro
 ```
 
 
@@ -155,11 +169,16 @@ from gaze_only_gat import GazeOnlyGAT
 
 
 ```python
-model = GazeOnlyGAT(device=device)
+model = GazeOnlyGAT(gat_channels=gat_channels,
+                    ro_hidden_features=ro_channels[1:],
+                    device=conf.device)
 ```
 
 
 ```python
-predictions = model((splits, fixations.to(device), patches.to(device), labels.to(device)))
+predictions = model((splits,
+                     fixations.to(conf.device),
+                     patches.to(conf.device),
+                     labels.to(conf.device)))
 predictions.shape, labels.shape
 ```

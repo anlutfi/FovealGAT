@@ -57,82 +57,7 @@ Since we now have all individual components, we are ready to run the full model.
 import only_gaze_confs as conf
 ```
 
-### 6. Gradient Test
-
-We can now test the model's capacity of proper backpropagation
-
-
-```python
-import torch
-if torch.cuda.is_available():
-    device = 'cuda:0'
-else:
-    device = 'cpu'
-
-print(device)
-```
-
-fetch sample data batch
-
-
-```python
-from gaze_datasets.reflacx import ReflacxGazePatchDataset
-from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
-
-gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
-desired_label = 'Atelectasis'
-ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
-splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))
-```
-
-
-```python
-from torch import nn
-```
-
-
-```python
-from model.gaze_only_gat import GazeOnlyGAT
-from test_tools import mem_str
-```
-
-
-```python
-model = GazeOnlyGAT(device=device)
-```
-
-
-```python
-criterion = nn.L1Loss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=0.01)
-
-model.train()
-optimizer.zero_grad()
-
-h1 = model((splits, fixations.to(device), patches.to(device), labels.to(device)))
-
-loss = criterion(h1, labels.to(device))
-
-loss.backward()
-
-for name, param in model.named_parameters():
-    if param.requires_grad and param.grad is not None:
-        print(f"{name} Grad Mean: {param.grad.mean().item()}")
-print()
-
-optimizer.step()
-
-print('max: {}'.format(mem_str(torch.cuda.max_memory_allocated(device))))
-print('curr: {}\n'.format(mem_str(torch.cuda.memory_allocated(device))))
-```
-
-
-```python
-for name, _ in model.named_parameters():
-    print(name)
-```
-
-### 7. Training
+### 6. Training
 
 First thing is setting model and treinning parameters in [the configuration file](./only_gaze_confs.py)
 
@@ -148,9 +73,9 @@ import os
 ```python
 from feature_extraction.extractors import GazePatchFeatureExtractor
 feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
-                                     conf.fe_in_channels,
-                                     conf.fe_out_channels,
+                                     conf.fe_channels,
                                      conf.fe_act,
+                                     conf.fe_norm,
                                      conf.fe_bias,
                                      conf.fe_w_init_f,
                                      conf.device)
@@ -224,18 +149,19 @@ from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
 
 ```python
 import torch
+from datetime import datetime
 ```
 
 
 ```python
 min_val_loss = torch.inf
 for epoch in range(5):
-    dataset.shuffle()
     model.train()
     dataset.set_mode('train')
     loader = DataLoader(dataset,
                         batch_size=conf.batch_size,
                         collate_fn=gaze_patch_dataset_collate,
+                        shuffle=True,
                         num_workers=conf.dl_num_workers,
                         pin_memory=True)
     running_loss = 0.0
@@ -285,6 +211,7 @@ for epoch in range(5):
         
         mname = dataset_pth.split(os.path.sep)[-1]
         mname = '_'.join([conf.dataset_type, mname])
+        mname = '_'.join([mname, datetime.now().strftime("%Y%m%d_%H%M")])
         mname = '.'.join([mname, 'pt'])
         torch.save(checkpoint, os.path.sep.join([conf.stored_model_pth, mname]))
         print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))

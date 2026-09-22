@@ -7,21 +7,6 @@ import only_gaze_confs as conf
 
 
 ```python
-import torch
-```
-
-
-```python
-if torch.cuda.is_available():
-    device = 'cuda:0'
-else:
-    device = 'cpu'
-
-print(device)
-```
-
-
-```python
 gazedataset_pth = conf.reflacx_gaze_dataset_pth
 desired_label = 'Atelectasis'
 ```
@@ -43,7 +28,13 @@ from feature_extraction.extractors import GazePatchFeatureExtractor
 
 
 ```python
-feat_ext = GazePatchFeatureExtractor().to(device)
+feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
+                                     conf.fe_channels,
+                                     conf.fe_act,
+                                     conf.fe_norm,
+                                     conf.fe_bias,
+                                     conf.fe_w_init_f,
+                                     conf.device)
 ```
 
 The pyramid feature extractor (tail) does not reduce the input to a 1X1 feature vector. So we add extra Conv2d to further reduce each gaze patch (head)
@@ -55,6 +46,6 @@ feat_ext
 
 
 ```python
-feats = feat_ext(ps.to(device))
+feats = feat_ext(ps.to(conf.device))
 feats.shape
 ```

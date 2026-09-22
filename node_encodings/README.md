@@ -27,23 +27,11 @@ gaze_dataset_pth = conf.reflacx_gaze_dataset_pth
 
 ```python
 # get longest gaze sequence in dataset
-import json
-import os
+import torch
 from gaze_datasets.dataset_tools import max_fixation_sequence_len
 
 max_len = max_fixation_sequence_len(gaze_dataset_pth)
 max_len
-```
-
-
-```python
-import torch
-if torch.cuda.is_available():
-    device = 'cuda:0'
-else:
-    device = 'cpu'
-
-print(device)
 ```
 
 Load sample data
@@ -59,8 +47,14 @@ ds = ReflacxGazePatchDataset(gaze_dataset_pth, desired_label)
 fs, gsp, labels = ds[33]
 splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))
 
-feat_ext = GazePatchFeatureExtractor().to(device)
-feats = feat_ext(patches.to(device))
+feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
+                                     conf.fe_channels,
+                                     conf.fe_act,
+                                     conf.fe_norm,
+                                     conf.fe_bias,
+                                     conf.fe_w_init_f,
+                                     conf.device)
+feats = feat_ext(patches.to(conf.device))
 ```
 
 
@@ -72,24 +66,19 @@ gaze sequences (graphs) are batched, so sequential positional encoding should be
 
 
 ```python
-seqs = seq_encoding(splits, adjust_dim=True).to(device)
+seqs = seq_encoding(splits, adjust_dim=True).to(conf.device)
 splits, seqs.shape
 ```
 
 
 ```python
-fixations = fixations.to(device)
+fixations = fixations.to(conf.device)
 fixations.shape
 ```
 
 
 ```python
 feats.shape
-```
-
-
-```python
-fixations.device
 ```
 
 inserting encodings into gaze patch feature vector effectively turns it into the graph nodes
