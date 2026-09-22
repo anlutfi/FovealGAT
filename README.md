@@ -59,7 +59,7 @@ import only_gaze_confs as conf
 
 ### 6. Training
 
-First thing is setting model and treinning parameters in [the configuration file](./only_gaze_confs.py)
+First thing is setting model and training parameters in [the configuration file](./only_gaze_confs.py)
 
 load confs and instantiate model and hyper parameters
 
