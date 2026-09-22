@@ -52,11 +52,6 @@ Since we are dealing with complete causal graphs --each node sees ALL of its pre
 
 Since we now have all individual components, we are ready to run the full model. [Full Model ReadMe](./model/README.md#full)
 
-
-```python
-import only_gaze_confs as conf
-```
-
 ### 6. Training
 
 First thing is setting model and training parameters in [the configuration file](./only_gaze_confs.py)
