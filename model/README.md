@@ -54,7 +54,7 @@ The first component is the Graph Attention Convolution Layer.
 
 
 ```python
-from model.GATConv import CausalGATConv
+from model.gat_conv import CausalGATConv
 ```
 
 set number of attention heads for the layer
@@ -67,9 +67,9 @@ att_heads = 4
 
 ```python
 gcnn = CausalGATConv(ns.shape[0],
-               ns.shape[0],
-               att_heads,
-               device=conf.device)
+                     ns.shape[0],
+                     att_heads,
+                     device=conf.device)
 ```
 
 
@@ -95,7 +95,8 @@ We need input sizes for each of the graphs GAT Layers, and the residual layers' 
 
 ```python
 gat_channels = [conv_nodes.shape[0], 134, 134, 134, 67] # input size and 4 GAT convolution layers
-residual_gat_levels = [1, 2, 4]
+residual_gat_levels = [False, True, False]
+output_gat_levels = None
 gat_conv = CausalGATConv
 ```
 
@@ -107,7 +108,8 @@ from grapher import GazeGrapher
 
 ```python
 grapher = GazeGrapher(channels=gat_channels,
-                      readout_gat_levels=residual_gat_levels,
+                      output_gat_levels=output_gat_levels,
+                      residual_gat_levels=residual_gat_levels,
                       device=conf.device)
 grapher
 ```

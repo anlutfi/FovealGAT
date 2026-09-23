@@ -88,7 +88,8 @@ encoder = GazeSinCosPosEncoding(conf.reflacx_max_len if conf.dataset_type == 're
 from model.gaze_only_gat import GazeOnlyGAT
 model = GazeOnlyGAT(feat_ext,
                     encoder,
-                    conf.grph_readout_gat_levels,
+                    conf.grph_output_gat_levels,
+                    conf.grph_residual_gat_levels,
                     conf.grph_gat_conv,
                     conf.readout,
                     conf.grph_channels,
@@ -108,6 +109,7 @@ model = GazeOnlyGAT(feat_ext,
                     conf.grph_w_init_f,
                     conf.ro_w_init_f,
                     conf.device)
+model
 ```
 
 
@@ -132,17 +134,17 @@ dataset = dataset_clss(dataset_pth,
 
 ```python
 criterion = conf.criterion()
-optimizer = conf.optimizer(model.parameters())
+optimizer = conf.optimizer([{'params': [p for n, p in model.named_parameters() if 'feat_ext.tail' not in n],
+                             'lr': conf.lr},
+                             {'params': [p for n, p in model.named_parameters() if 'feat_ext.tail' in n],
+                             'lr': conf.lr_pretrained}])
+    
 ```
 
 
 ```python
 from torch.utils.data import DataLoader
 from gaze_datasets.dataset_tools import gaze_patch_dataset_collate
-```
-
-
-```python
 import torch
 from datetime import datetime
 ```
