@@ -40,10 +40,12 @@ print('running on {}'.format(device))
 desired_label = 'Atelectasis'
 criterion = nn.L1Loss
 lr = 0.01
+lr_pretrained = 0.003 # learning rate for pre-trained feature extractor tail
 optimizer = lambda model: torch.optim.AdamW(model, lr=lr)
 epochs = 100
 store_best_model = True
 store_last_model = True
+#stored_model_pth = '.'
 stored_model_pth = '.'
 
 #### feature extraction
@@ -67,8 +69,9 @@ from torch_geometric.nn.norm import GraphNorm
 import model.gat_conv as convs
 in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
 grph_gat_conv = convs.CausalGATConv
-grph_readout_gat_levels = None
 grph_channels = [in_channels, 256, 256, 256, 256]
+grph_residual_gat_levels = [False, True, False]
+grph_output_gat_levels = None
 grph_att_heads = [16, 8, 8, 8, 8]
 grph_act_att = F.leaky_relu
 grph_act_gat = F.elu
@@ -80,10 +83,7 @@ grph_w_init_f = lambda w: nn.init.xavier_uniform_(w)
 #### Readout
 import model.readout as readouts
 readout = readouts.CausalReadout
-ro_in_channels = (sum(grph_channels)
-                  if (grph_readout_gat_levels is None or len(grph_readout_gat_levels) == 0)
-                  else sum([grph_channels[i] for i in grph_readout_gat_levels]))
-ro_channels = [ro_in_channels, 512, 256, 128, 64]
+ro_channels = [-1, 512, 256, 128, 64]
 ro_hidden_features = ro_channels[1:]
 ro_out_channels = 1
 ro_hidden_act = nn.GELU
