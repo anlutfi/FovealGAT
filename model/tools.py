@@ -16,7 +16,7 @@ def adjust_args(args):
         if arg.__class__ not in (tuple, list):
             args[i] = [arg for j in range(l)]
         else:
-            assert len(arg) == l
+            assert len(arg) == l, "wrong len for parameter {}".format(i)
 
     return args
 
