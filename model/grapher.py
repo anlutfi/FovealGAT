@@ -3,14 +3,15 @@ from torch_geometric.nn.norm import GraphNorm
 import torch.nn.functional as F
 
 from model.tools import adjust_args
-from model.GATConv import CausalGATConv
+from model.gat_conv import CausalGATConv
 from model.residual_sequential import ResidualSequential
 
 
 class GazeGrapher(nn.Module):
     def __init__(self,
                  gat_conv=CausalGATConv,
-                 readout_gat_levels=None,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
                  channels=[67, 134, 134, 134, 67],
                  att_heads=8,
                  act_att=F.leaky_relu,
@@ -41,18 +42,30 @@ class GazeGrapher(nn.Module):
                               dropout,
                               bias])
 
-        if readout_gat_levels is None or len(readout_gat_levels) == 0:
-            readout_gat_levels = list(range(len(channels)))
+        if output_gat_levels is None or len(output_gat_levels) == 0:
+            output_gat_levels = list(range(len(channels)))
 
-        assert len(readout_gat_levels) <= len(channels)
-        for l in readout_gat_levels:
+        assert len(output_gat_levels) <= len(channels)
+        for l in output_gat_levels:
             assert l < len(channels)
+
+        if residual_gat_levels is None or len(residual_gat_levels) == 0:
+            residual_gat_levels = [False if i == 0 else True
+                                   for i in range(len(channels))]
+
+        assert len(residual_gat_levels) == len(channels)
+        for i, l in enumerate(residual_gat_levels):
+            assert l.__class__ == bool
+            if i == 0:
+                assert l == False
         
         super(GazeGrapher, self).__init__()
 
         self.device = device
 
-        self.gats = ResidualSequential(readout_gat_levels).to(device)
+        self.gats = ResidualSequential(output_gat_levels,
+                                       residual_gat_levels,
+                                       gat_conv).to(device)
         for i, (chn, heads, act_a, act_g, n, drop, b) in enumerate(zip(channels[1:],
                                                                        att_heads[1:],
                                                                        act_att[1:],
@@ -61,17 +74,17 @@ class GazeGrapher(nn.Module):
                                                                        dropout[1:],
                                                                        bias[1:]),
                                                                    start=1):
-            self.gats.add_module('GAT_{}'.format(i - 1),
-                                 gat_conv(channels[i - 1],
-                                          chn,
-                                          heads,
-                                          act_a,
-                                          act_g,
-                                          n,
-                                          drop,
-                                          b,
-                                          w_init_f=w_init_f,
-                                          device=device))
+            self.gats.add_conv('GAT_{}'.format(i - 1),
+                               channels[i - 1],
+                               chn,
+                               heads,
+                               act_a,
+                               act_g,
+                               n,
+                               drop,
+                               b,
+                               w_init_f,
+                               device)
             
 
     def forward(self, x):
