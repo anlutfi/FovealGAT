@@ -28,8 +28,8 @@ class ResidualSequential(nn.Sequential):
                  device):
         i = len(self)
         if i == 0:
-            self.first_residual_channels = out_channels
-        elif self.residual_lvls[i]:
+            self.first_residual_channels = in_channels
+        elif self.residual_lvls[i - 1]:
             in_channels += self.first_residual_channels
         self.add_module(name,
                         self.gat_conv(in_channels,
@@ -48,9 +48,9 @@ class ResidualSequential(nn.Sequential):
         first_nodes, splits = x
         nodes = first_nodes
 
-        result = [nodes] if 0 in self.output_lvls else []
+        result = []
         for i, module in enumerate(self): #, 1):
-            if i in self.residual_lvls:
+            if i > 0 and self.residual_lvls[i - 1]:
                 nodes = torch.cat([nodes, first_nodes], dim=0)
             nodes = module((nodes, splits))
             if i in self.output_lvls:

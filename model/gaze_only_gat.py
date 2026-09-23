@@ -14,7 +14,8 @@ class GazeOnlyGAT(nn.Module):
     def __init__(self,
                  feat_extractor=GazePatchFeatureExtractor(w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')),
                  encoder=GazeSinCosPosEncoding(386, 16), #for reflacx
-                 readout_gat_levels=None,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
                  gat_conv=CausalGATConv,
                  readout=CausalReadout,
                  gat_channels=[67, 134, 134, 134, 67],
@@ -40,10 +41,9 @@ class GazeOnlyGAT(nn.Module):
         self.feat_ext = feat_extractor.to(device)
         self.encoder = encoder
 
-        if readout_gat_levels is None or len(readout_gat_levels) == 0:
-            readout_gat_levels = list(range(len(gat_channels)))
         self.grapher = GazeGrapher(gat_conv,
-                                   readout_gat_levels,
+                                   output_gat_levels,
+                                   residual_gat_levels,
                                    gat_channels,
                                    att_heads,
                                    act_att,
@@ -54,7 +54,10 @@ class GazeOnlyGAT(nn.Module):
                                    w_init_f=gat_w_init_f,
                                    device=device)
 
-        ro_in_channels = sum([gat_channels[i] for i in readout_gat_levels])
+        ro_in_channels = sum([c.node_update.out_channels
+                              for i, c in enumerate(self.grapher.gats)
+                              if i in self.grapher.gats.output_lvls])
+        #ro_in_channels = sum([gat_channels[i] for i in output_gat_levels])
         ro_channels = [ro_in_channels] + ro_hidden_features
         self.readout = readout(ro_channels,
                                out_channels,

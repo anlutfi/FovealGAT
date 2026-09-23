@@ -17,7 +17,7 @@ class GazeGrapher(nn.Module):
                  act_att=F.leaky_relu,
                  act_gat=F.elu,
                  norm=GraphNorm,
-                 dropout=[0.0, 0.1, 0.1, 0.1, 0.1],
+                 dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
                  device='cpu'):
@@ -50,14 +50,11 @@ class GazeGrapher(nn.Module):
             assert l < len(channels)
 
         if residual_gat_levels is None or len(residual_gat_levels) == 0:
-            residual_gat_levels = [False if i == 0 else True
-                                   for i in range(len(channels))]
+            residual_gat_levels = [True for i in range(len(channels) - 2)]
 
-        assert len(residual_gat_levels) == len(channels)
+        assert len(residual_gat_levels) == len(channels) - 2
         for i, l in enumerate(residual_gat_levels):
             assert l.__class__ == bool
-            if i == 0:
-                assert l == False
         
         super(GazeGrapher, self).__init__()
 
