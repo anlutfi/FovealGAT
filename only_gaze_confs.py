@@ -64,7 +64,7 @@ seq_encoding_feat_count = 16
 #### Grapher
 from torch.nn import functional as F
 from torch_geometric.nn.norm import GraphNorm
-import model.GATConv as convs
+import model.gat_conv as convs
 in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
 grph_gat_conv = convs.CausalGATConv
 grph_readout_gat_levels = None

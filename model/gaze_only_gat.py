@@ -5,7 +5,7 @@ from torch_geometric.nn.norm import GraphNorm
 
 from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
-from model.GATConv import CausalGATConv
+from model.gat_conv import CausalGATConv
 from model.readout import CausalReadout
 from model.grapher import GazeGrapher
 
