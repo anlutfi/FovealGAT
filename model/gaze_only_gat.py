@@ -57,7 +57,6 @@ class GazeOnlyGAT(nn.Module):
         ro_in_channels = sum([c.node_update.out_channels
                               for i, c in enumerate(self.grapher.gats)
                               if i in self.grapher.gats.output_lvls])
-        #ro_in_channels = sum([gat_channels[i] for i in output_gat_levels])
         ro_channels = [ro_in_channels] + ro_hidden_features
         self.readout = readout(ro_channels,
                                out_channels,
