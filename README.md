@@ -193,11 +193,15 @@ for epoch in range(1 if test_back_prop else conf.epochs):
             print("BATCH {}".format(i))
             debug_grads(model)
             print('\n\n')
+            if i >= 5:
+                break
         optimizer.step()
     print('epoch: {}  total train loss: {}'.format(epoch, running_loss))
     print('epoch: {}    avg train loss: {}'.format(epoch, running_loss / sample_count))
 
 
+    if test_back_prop:
+        break
     model.eval()
     dataset.set_mode('val')
     loader = DataLoader(dataset,
