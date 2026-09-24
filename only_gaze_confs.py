@@ -45,7 +45,6 @@ optimizer = lambda model: torch.optim.AdamW(model, lr=lr)
 epochs = 100
 store_best_model = True
 store_last_model = True
-#stored_model_pth = '.'
 stored_model_pth = '.'
 
 #### feature extraction
