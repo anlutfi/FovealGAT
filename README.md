@@ -151,8 +151,24 @@ from datetime import datetime
 
 
 ```python
+test_back_prop = True
+```
+
+
+```python
+def debug_grads(model):
+    for name, param in model.named_parameters():
+        if param.requires_grad:
+            if param.grad is None:
+                print("{}: Missing Gradient!!!".format(name))
+                continue
+            print(f"{name:25} | Mean: {param.grad.mean().item():.6f} | Max: {param.grad.max().item():.6f} | Norm: {param.grad.norm().item():.6f}")
+```
+
+
+```python
 min_val_loss = torch.inf
-for epoch in range(5):
+for epoch in range(1 if test_back_prop else conf.epochs):
     model.train()
     dataset.set_mode('train')
     loader = DataLoader(dataset,
@@ -173,6 +189,10 @@ for epoch in range(5):
         running_loss += loss * len(splits)
         sample_count += len(splits)
         loss.backward()
+        if test_back_prop:
+            print("BATCH {}".format(i))
+            debug_grads(model)
+            print('\n\n')
         optimizer.step()
     print('epoch: {}  total train loss: {}'.format(epoch, running_loss))
     print('epoch: {}    avg train loss: {}'.format(epoch, running_loss / sample_count))
@@ -207,9 +227,10 @@ for epoch in range(5):
                       'args_dump': args_dump}
         
         mname = dataset_pth.split(os.path.sep)[-1]
-        mname = '_'.join([conf.dataset_type, mname])
+        mname = '_'.join([conf.dataset_type, conf.desired_label, mname])
         mname = '_'.join([mname, datetime.now().strftime("%Y%m%d_%H%M")])
         mname = '.'.join([mname, 'pt'])
+        mname = mname.replace(' ', ',')
         torch.save(checkpoint, os.path.sep.join([conf.stored_model_pth, mname]))
         print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))
 
