@@ -38,10 +38,23 @@ else:
 print('running on {}'.format(device))
 
 desired_label = 'Atelectasis'
+if dataset_type == 'reflacx':
+    assert desired_label in ('Consolidation',
+                             'Groundglass opacity',
+                             'Atelectasis',
+                             'Pulmonary edema',
+                             'Pneumothorax',
+                             'Enlarged cardiac silhouette')
+elif dataset_type == 'mimic':
+    assert desired_label in ('Normal',
+                             'CHF',
+                             'pneumonia')
+
+
 criterion = nn.L1Loss
 lr = 0.01
 lr_pretrained = 0.003 # learning rate for pre-trained feature extractor tail
-optimizer = lambda model: torch.optim.AdamW(model, lr=lr)
+optimizer = torch.optim.AdamW
 epochs = 100
 store_best_model = True
 store_last_model = True
