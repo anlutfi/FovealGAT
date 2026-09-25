@@ -60,7 +60,7 @@ load confs and instantiate model and hyper parameters
 
 
 ```python
-import true_confs as conf
+import only_gaze_confs as conf
 import os
 ```
 
