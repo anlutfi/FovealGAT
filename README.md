@@ -60,7 +60,7 @@ load confs and instantiate model and hyper parameters
 
 
 ```python
-import only_gaze_confs as conf
+import true_confs as conf
 import os
 ```
 
@@ -231,10 +231,14 @@ for epoch in range(1 if test_back_prop else conf.epochs):
                       'args_dump': args_dump}
         
         mname = dataset_pth.split(os.path.sep)[-1]
-        mname = '_'.join([conf.dataset_type, conf.desired_label, mname])
-        mname = '_'.join([mname, datetime.now().strftime("%Y%m%d_%H%M")])
+        mname = '_'.join([conf.dataset_type,
+                          mname,
+                          conf.desired_label,
+                          criterion.__name__,
+                          optimizer.__name__,
+                          datetime.now().strftime("%Y%m%d_%H%M")])
         mname = '.'.join([mname, 'pt'])
-        mname = mname.replace(' ', ',')
+        mname = mname.replace(' ', '_')
         torch.save(checkpoint, os.path.sep.join([conf.stored_model_pth, mname]))
         print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))
 
