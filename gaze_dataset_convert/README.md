@@ -4,7 +4,7 @@ In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze dataset
 
 
 ```python
-import only_gaze_confs as conf
+import dataset_convert_confs as conf
 ```
 
 ### -REFLACX
