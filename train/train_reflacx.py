@@ -187,8 +187,15 @@ if __name__ == '__main__':
         min_val_loss = torch.inf
         stats = {'train': [],
                 'eval': [],
-                'test': []}
+                'test': [],
+                'epoch_train': {},
+                'epoch_val': {},
+                'session_test': {}}
+        
+        # TRAIN & VAL
         for epoch in range(epochs):
+            
+            # Train
             print('Session: {}  --  Epoch: {}'.format(session + 1, epoch + 1))
             model.train()
             dataset.set_mode('train')
@@ -208,17 +215,22 @@ if __name__ == '__main__':
                         labels.to(device)))
                 loss = criterion(h, labels.to(device))
 
-                stats['train'].append({'predictions': h,
+                stats['train'].append({'epoch': epoch,
+                                    'predictions': h,
                                     'labels': labels,
-                                    'loss': loss.item()})
+                                    'loss': loss.item() * len(splits)})
                 running_loss += loss * len(splits)
                 sample_count += len(splits)
                 
                 loss.backward()
                 optimizer.step()
+            stats['epoch_train'] = {'total_loss': running_loss,
+                                    'avg_loss': running_loss / sample_count}
+            
             print('epoch: {}  total train loss: {}'.format(epoch + 1, running_loss))
             print('epoch: {}    avg train loss: {}'.format(epoch + 1, running_loss / sample_count))
 
+            # Val
             model.eval()
             dataset.set_mode('val')
             loader = DataLoader(dataset,
@@ -235,9 +247,10 @@ if __name__ == '__main__':
                             patches.to(device),
                             labels.to(device)))
                     loss = criterion(h, labels.to(device))
-                    stats['eval'].append({'predictions': h,
+                    stats['eval'].append({'epoch': epoch,
+                                        'predictions': h,
                                         'labels': labels,
-                                        'loss': loss.item()})
+                                        'loss': loss.item() * len(splits)})
                     running_loss += loss * len(splits)
                     sample_count += len(splits)
             avg_val_loss = running_loss / sample_count
@@ -264,8 +277,43 @@ if __name__ == '__main__':
                                         best=True)
                     print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))
 
+            stats['epoch_val'] = {'total_loss': running_loss,
+                                  'avg_loss': running_loss / sample_count}
             print("epoch: {}   total val loss: {:.4f}".format(epoch + 1, running_loss))
             print("epoch: {}     avg val loss: {:.4f}".format(epoch + 1, avg_val_loss))
+            print()
+
+        # TEST for current session
+        model.eval()
+        test_loss = 0.0
+        test_samples = 0
+
+        dataset.set_mode('test')
+        loader = DataLoader(dataset,
+                            batch_size=batch_size,
+                            collate_fn=gaze_patch_dataset_collate,
+                            num_workers=dl_num_workers,
+                            pin_memory=True)
+
+        with torch.no_grad():
+            
+            for splits, fixations, patches, labels in loader:
+                h = model((splits,
+                        fixations.to(device),
+                        patches.to(device),
+                        labels.to(device)))
+                loss = criterion(h, labels.to(device))
+
+                stats['test'].append({'session': session,
+                                    'predictions': h,
+                                    'labels': labels,
+                                    'loss': loss.item() * len(splits)})
+                test_loss += loss.item() * len(splits)
+                test_samples += len(splits)
+            stats['session_test'] = {'total_loss': test_loss,
+                                     'avg_loss': test_loss / test_samples}
+            print("session: {}   total test loss: {:.4f}".format(session + 1, test_loss))
+            print("session: {}     avg test loss: {:.4f}".format(session + 1, test_loss / test_samples))
             print()
 
         stats_pth = os.path.sep.join([session_dir, 'stats.pt'])
