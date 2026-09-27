@@ -2,6 +2,7 @@ import torch
 from torch.utils.data import Dataset
 import os
 import json
+from math import ceil # needed only in python 3.11
 
 from gaze_datasets.dataset_tools import identity
 
@@ -54,7 +55,7 @@ class GazePatchDataset(Dataset):
             train_val_test_split = [1.0, 0.0, 0.0]
         else:
             assert len(train_val_test_split) == 3 
-            assert int(sum(train_val_test_split)) == 1
+            assert ceil(sum(train_val_test_split)) == 1 ## only in python 3.11 that thinks that int(0.99999999999) == 0
         self.train_val_test_split = train_val_test_split
         self.transform = transform
         self.fixations = GazePatchDataset.load_sort_fnames(self.fixations_path)

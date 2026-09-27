@@ -28,7 +28,7 @@ class GazePatchFeatureExtractor(nn.Module):
                                                eps=1e-05,
                                                momentum=0.1,
                                                affine=True,
-                                               bias=bias[0],
+                                               #bias=bias[0], version mismatch between GIVA servers and my own
                                                track_running_stats=True).to(device))
         self.head.add_module('act_0', act[0]().to(device))
                 
@@ -43,7 +43,7 @@ class GazePatchFeatureExtractor(nn.Module):
                                          eps=1e-05,
                                          momentum=0.1,
                                          affine=True,
-                                         bias=bias[i],
+                                         #bias=bias[i], version mismatch between GIVA servers and my own
                                          track_running_stats=True).to(device))
             self.head.add_module('act_{}'.format(i),
                                   act[i]().to(device))
