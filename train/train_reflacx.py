@@ -6,14 +6,11 @@ if __name__ == '__main__':
     import torch
     from torch import nn
 
-    from train_tools import get_loss, get_optim
+    from train_tools import get_loss, get_optim, choose_device
 
     import torch
-    if torch.cuda.is_available():
-        device = 'cuda:0'
-    else:
-        device = 'cpu'
-
+    
+    device = choose_device()
     print('running on {}'.format(device))
 
     desired_label = sys.argv[1]
@@ -41,7 +38,7 @@ if __name__ == '__main__':
 
     train_val_test_split = [0.7, 0.2, 0.1]
     transform = nn.Identity()
-    batch_size = 2
+    batch_size = 5
     dl_num_workers = 4
 
     #### feature extraction
@@ -64,10 +61,10 @@ if __name__ == '__main__':
     import model.gat_conv as convs
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
     grph_gat_conv = convs.CausalGATConv
-    grph_channels = [in_channels, 256, 256, 256, 256]
-    grph_residual_gat_levels = [False, True, False]
+    grph_channels = [in_channels, 256, 256, 256, 256, 256, 256, 256, 256]
+    grph_residual_gat_levels = [False, True, False, True, True, True, True]
     grph_output_gat_levels = None
-    grph_att_heads = [16, 8, 8, 8, 8]
+    grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8, 8]
     grph_act_att = F.leaky_relu
     grph_act_gat = F.elu
     grph_norm = GraphNorm
@@ -137,6 +134,7 @@ if __name__ == '__main__':
         print('Beginning training session {} of {}\n'.format(session + 1, sessions))
         
         feat_ext = GazePatchFeatureExtractor(fe_tail_feat_ext,
+                                             args['pretrained_sd'],
                                             fe_channels,
                                             fe_act,
                                             fe_norm,
@@ -196,7 +194,7 @@ if __name__ == '__main__':
         for epoch in range(epochs):
             
             # Train
-            print('Session: {}  --  Epoch: {}'.format(session + 1, epoch + 1))
+            print('Session: {}  --  Epoch: {} of {}'.format(session + 1, epoch + 1, epochs))
             model.train()
             dataset.set_mode('train')
             loader = DataLoader(dataset,
