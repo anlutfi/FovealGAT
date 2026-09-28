@@ -75,10 +75,17 @@ class GazePatchDataset(Dataset):
             for fix_pth in self.fixations:
                 pth = os.path.sep.join([self.fixations_path, fix_pth])
                 with open(pth, 'r') as fp:
-                    fix = json.load(pth)
-                log_t = log(fix['t'])
-                self.min_log_t = min(self.min_log_t, log_t)
-                self.max_log_t = max(self.max_log_t, log_t)                                               
+                    fixs = json.load(fp)
+                for i, fix in enumerate(fixs):
+                    if fix['t'] == 0: # TODO remove this when correcting mimic generation
+                        continue
+                    log_t = log(fix['t'])
+                    self.min_log_t = min(self.min_log_t, log_t)
+                    self.max_log_t = max(self.max_log_t, log_t)
+            with open(min_max_duration_pth, 'w') as fp:
+                json.dump({'min_log': self.min_log_t,
+                           'max_log': self.max_log_t},
+                          fp)
                                     
                         
 

@@ -15,7 +15,8 @@ class ReflacxGazePatchDataset(GazePatchDataset):
                  target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
                  mode='train',
                  train_val_test_split=1.0,
-                 transform=identity):
+                 transform=identity,
+                 min_max_duration_pth='./reflacx_t_info.json'):
         """param:dataset_path is the directory containing the reflacx gaze_patch raw data
            param:target_labels is the label for a desired anomaly within those present in REFLACX to return as ground truths
            param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
@@ -27,7 +28,8 @@ class ReflacxGazePatchDataset(GazePatchDataset):
                          target_fixation_keys,
                          mode,
                          train_val_test_split,
-                         transform)
+                         transform,
+                         min_max_duration_pth)
         self.init_labels()
 
 
@@ -45,7 +47,8 @@ class ReflacxGazePatchDataset(GazePatchDataset):
         with open(os.path.sep.join([self.fixations_path, self.fixations[i]])) as fp:
             fixations = json.load(fp)
 
-        fixations['t'] = self.normalize_t(fixations['t'])
+        for i, fix in enumerate(fixations):
+            fixations[i]['t'] = self.normalize_t(fix['t'])
         
         if self.target_fixation_keys is not None and self.target_fixation_keys != []:
             fixations = torch.asarray([[f[k] for k in self.target_fixation_keys]

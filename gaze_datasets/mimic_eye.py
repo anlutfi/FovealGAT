@@ -13,7 +13,8 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
                  target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
                  mode='train',
                  train_val_test_split=1.0,
-                 transform=identity):
+                 transform=identity,
+                 min_max_duration_pth='./mimic_t_info.json'):
         """param:dataset_path is the directory containing the mimic eye gaze_patch raw data
             param:target_labels is the label for a desired anomaly within those present in mimic eye to return as ground truths
             param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
@@ -25,7 +26,8 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
                          target_fixation_keys,
                          mode,
                          train_val_test_split,
-                         transform)
+                         transform,
+                         min_max_duration_pth)
         self.init_labels()
 
 
@@ -41,9 +43,10 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
         r_id = self.fixations[i].split('.')[-2]
                 
         with open(os.path.sep.join([self.fixations_path, self.fixations[i]])) as fp:
-            fixations = json.load(fp)
+            fixations = json.load(fp)[1:] #TODO remove after fixing mimic generation
         
-        fixations['t'] = self.normalize_t(fixations['t'])
+        for i, fix in enumerate(fixations):
+            fixations[i]['t'] = self.normalize_t(fix['t'])
         
         if self.target_fixation_keys is not None and self.target_fixation_keys != []:
             fixations = torch.asarray([[f[k] for k in self.target_fixation_keys]
@@ -62,7 +65,7 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
         l_gp = os.listdir(gaze_patches_dir)
         l_gp.sort(key=lambda x: int(x.split('.')[-2]))
         gaze_patches = None
-        for gaze_patch_pth in l_gp:
+        for gaze_patch_pth in l_gp[1:]: #TODO remove after fixing mimic generation
             gp = torch.load(os.path.sep.join([gaze_patches_dir, gaze_patch_pth]))
             gp = self.transform(gp)
             if gaze_patches is None:
