@@ -1,5 +1,7 @@
+import torch
 from torch import nn
 from torch import optim
+import pynvml
 
 losses = {"mse": nn.MSELoss,
           "l2": nn.MSELoss,
@@ -31,6 +33,29 @@ def get_obj(nm, obj_dict):
 get_loss = lambda nm: get_obj(nm, losses)
 get_optim = lambda nm: get_obj(nm, optims)
 get_act = lambda nm: get_obj(nm, acts)
+
+
+def choose_device():
+    """chooses GPU with smallest current memory load
+    """
+    if not torch.cuda.is_available():
+        return 'cpu'
+
+    pynvml.nvmlInit()
+
+    best_device = None
+    min_load = float('inf')
+
+    for i in range(pynvml.nvmlDeviceGetCount()):
+        handle = pynvml.nvmlDeviceGetHandleByIndex(i)
+        mem_used = pynvml.nvmlDeviceGetMemoryInfo(handle).used
+
+        if mem_used < min_load:
+            min_load = mem_used
+            best_device = i
+
+    pynvml.nvmlShutdown()
+    return 'cuda:{}'.format(best_device)
 
 
     

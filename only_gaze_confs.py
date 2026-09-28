@@ -31,14 +31,13 @@ batch_size = 3
 dl_num_workers = 4
 
 
+from train.train_tools import choose_device
+print('choosing least busy GPU...')
+device = choose_device()
+print('running on {}'.format(device))
+
 #### model
 import torch
-if torch.cuda.is_available():
-    device = 'cuda:0'
-else:
-    device = 'cpu'
-
-print('running on {}'.format(device))
 
 desired_label = 'Atelectasis'
 if dataset_type == 'reflacx':
