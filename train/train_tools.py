@@ -19,6 +19,10 @@ optims = {"sgd": optim.SGD,
           "asgd": optim.ASGD,
           "rprop": optim.Rprop}
 
+acts = {'relu': nn.ReLU,
+        'gelu': nn.GELU,
+        'leaky relu': nn.LeakyReLU}
+
 
 def get_obj(nm, obj_dict):
     nm = nm.lower().strip()
@@ -26,6 +30,7 @@ def get_obj(nm, obj_dict):
 
 get_loss = lambda nm: get_obj(nm, losses)
 get_optim = lambda nm: get_obj(nm, optims)
+get_act = lambda nm: get_obj(nm, acts)
 
 
     
