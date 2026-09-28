@@ -39,6 +39,7 @@ if __name__ == '__main__':
     train_val_test_split = [0.7, 0.2, 0.1]
     transform = nn.Identity()
     batch_size = 5
+    acc_steps = 8
     dl_num_workers = 4
 
     #### feature extraction
@@ -205,14 +206,17 @@ if __name__ == '__main__':
                                 pin_memory=True)
             running_loss = 0.0
             sample_count = 0
+            acc_graphs = 0
+            optimizer.zero_grad()
             for i, (splits, fixations, patches, labels) in enumerate(loader):
-                optimizer.zero_grad()
                 h = model((splits,
                         fixations.to(device),
                         patches.to(device),
                         labels.to(device)))
-                loss = criterion(h, labels.to(device))
-
+                acc_graphs += len(splits)
+                
+                loss = criterion(h, labels.to(device)) / len(splits)
+                
                 stats['train'].append({'epoch': epoch,
                                     'predictions': h,
                                     'labels': labels,
@@ -221,7 +225,12 @@ if __name__ == '__main__':
                 sample_count += len(splits)
                 
                 loss.backward()
-                optimizer.step()
+                if i != 0 and (acc_graphs >= batch_size * acc_steps or i == len(loader) - 1):
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    acc_graphs = 0
+
             stats['epoch_train'][epoch] = {'total_loss': running_loss,
                                            'avg_loss': running_loss / sample_count}
             
