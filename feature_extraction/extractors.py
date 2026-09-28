@@ -9,6 +9,7 @@ class GazePatchFeatureExtractor(nn.Module):
     """
     def __init__(self,
                  tail_feat_ext=pyramid_feature_extractor,
+                 state_dict_pth='../pretrained/pvig_ti_224_gelu.pt',
                  channels=[48, 128, 128, 128, 128],
                  act=nn.GELU,
                  norm=nn.BatchNorm2d,
@@ -21,13 +22,13 @@ class GazePatchFeatureExtractor(nn.Module):
         channels, act, norm, bias = adjust_args([channels, act, norm, bias])
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
-        self.tail = tail_feat_ext().to(device)
+        self.tail = tail_feat_ext(state_dict_pth, device=device)
 
         self.head = nn.Sequential().to(device)
         self.head.add_module('norm_0', norm[0](channels[0],
                                                eps=1e-05,
                                                momentum=0.1,
-                                               affine=True,
+                                               affine=bias[0],
                                                #bias=bias[0], version mismatch between GIVA servers and my own
                                                track_running_stats=True).to(device))
         self.head.add_module('act_0', act[0]().to(device))
@@ -42,7 +43,7 @@ class GazePatchFeatureExtractor(nn.Module):
                                  norm[i](chnn,
                                          eps=1e-05,
                                          momentum=0.1,
-                                         affine=True,
+                                         affine=bias[i],
                                          #bias=bias[i], version mismatch between GIVA servers and my own
                                          track_running_stats=True).to(device))
             self.head.add_module('act_{}'.format(i),

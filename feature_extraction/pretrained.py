@@ -1,6 +1,37 @@
-from models.pvig_gaze import pvig_ti_224_gelu
+import torch
+from torch import nn
+from train.train_tools import get_act
+
+class Stem(nn.Module):
+    """ Image to Visual Embedding
+    Overlap: https://arxiv.org/pdf/2106.13797.pdf
+    took this straight out of GazeGNN codebase to eliminate the need to import their whole modules
+    """
+    def __init__(self, in_channels=3, out_channels=48, act='gelu'):
+        act_layer = get_act(act)
+        super(Stem, self).__init__()
+        self.convs = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels//2, 3, stride=2, padding=1),
+            nn.BatchNorm2d(out_channels//2),
+            act_layer(),
+            nn.Conv2d(out_channels//2, out_channels, 3, stride=2, padding=1),
+            nn.BatchNorm2d(out_channels),
+            act_layer(),
+            nn.Conv2d(out_channels, out_channels, 3, stride=1, padding=1),
+            nn.BatchNorm2d(out_channels),
+        )
+
+    def forward(self, x):
+        x = self.convs(x)
+        return x
 
 
-def pyramid_feature_extractor(device='cpu'):
-    model = pvig_ti_224_gelu() # straight from GazeGNN: https://arxiv.org/abs/2305.18221
-    return model.stem.to(device)
+def pyramid_feature_extractor(pretrained_sd='./pretrained/pvig_ti_224_gelu.pt',
+                              in_channels=3,
+                              out_channels=48,
+                              act='gelu',
+                              device='cpu'):
+    model = Stem(in_channels, out_channels, act)
+    sd = torch.load(pretrained_sd)
+    model.load_state_dict(sd)
+    return model.to(device)

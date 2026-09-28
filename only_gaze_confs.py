@@ -66,6 +66,7 @@ stored_model_pth = os.path.sep.join([base_pth, 'models'])
 #### feature extraction
 from feature_extraction.pretrained import pyramid_feature_extractor
 fe_tail_feat_ext = pyramid_feature_extractor
+fe_state_dict_pth = os.path.sep.join([base_pth, 'GazeOnlyGAT', 'pretrained', 'pvig_ti_224_gelu.pt'])
 fe_channels = [48, 128, 128, 128, 128]
 fe_act = nn.GELU
 fe_norm = nn.BatchNorm2d
