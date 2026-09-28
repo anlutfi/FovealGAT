@@ -12,7 +12,7 @@ from model.grapher import GazeGrapher
 
 class GazeOnlyGAT(nn.Module):
     def __init__(self,
-                 feat_extractor=GazePatchFeatureExtractor(w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')),
+                 feat_extractor=None,
                  encoder=GazeSinCosPosEncoding(386, 16), #for reflacx
                  output_gat_levels=None,
                  residual_gat_levels=None,
@@ -38,7 +38,11 @@ class GazeOnlyGAT(nn.Module):
         super(GazeOnlyGAT, self).__init__()
         self.device=device
 
-        self.feat_ext = feat_extractor.to(device)
+        if feat_extractor is None:
+            feat_extractor = GazePatchFeatureExtractor(state_dict_pth='../pretrained/pvig_ti_224_gelu.pt',
+                                                       w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
+                                                       device=device)
+        self.feat_ext = feat_extractor
         self.encoder = encoder
 
         self.grapher = GazeGrapher(gat_conv,
