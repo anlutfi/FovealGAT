@@ -222,8 +222,8 @@ if __name__ == '__main__':
                 
                 loss.backward()
                 optimizer.step()
-            stats['epoch_train'] = {'total_loss': running_loss,
-                                    'avg_loss': running_loss / sample_count}
+            stats['epoch_train'][epoch] = {'total_loss': running_loss,
+                                           'avg_loss': running_loss / sample_count}
             
             print('epoch: {}  total train loss: {}'.format(epoch + 1, running_loss))
             print('epoch: {}    avg train loss: {}'.format(epoch + 1, running_loss / sample_count))
@@ -275,8 +275,8 @@ if __name__ == '__main__':
                                         best=True)
                     print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))
 
-            stats['epoch_val'] = {'total_loss': running_loss,
-                                  'avg_loss': running_loss / sample_count}
+            stats['epoch_val'][epoch] = {'total_loss': running_loss,
+                                         'avg_loss': running_loss / sample_count}
             print("epoch: {}   total val loss: {:.4f}".format(epoch + 1, running_loss))
             print("epoch: {}     avg val loss: {:.4f}".format(epoch + 1, avg_val_loss))
             print()
@@ -308,8 +308,8 @@ if __name__ == '__main__':
                                     'loss': loss.item() * len(splits)})
                 test_loss += loss.item() * len(splits)
                 test_samples += len(splits)
-            stats['session_test'] = {'total_loss': test_loss,
-                                     'avg_loss': test_loss / test_samples}
+            stats['session_test'][session] = {'total_loss': test_loss,
+                                              'avg_loss': test_loss / test_samples}
             print("session: {}   total test loss: {:.4f}".format(session + 1, test_loss))
             print("session: {}     avg test loss: {:.4f}".format(session + 1, test_loss / test_samples))
             print()
