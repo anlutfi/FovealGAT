@@ -43,6 +43,8 @@ class MimicEyeGazePatchDataset(GazePatchDataset):
         with open(os.path.sep.join([self.fixations_path, self.fixations[i]])) as fp:
             fixations = json.load(fp)
         
+        fixations['t'] = self.normalize_t(fixations['t'])
+        
         if self.target_fixation_keys is not None and self.target_fixation_keys != []:
             fixations = torch.asarray([[f[k] for k in self.target_fixation_keys]
                                         for f in fixations])

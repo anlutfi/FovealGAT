@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 import os
 import json
 from math import ceil # needed only in python 3.11
+from math import log
 
 from gaze_datasets.dataset_tools import identity
 
@@ -28,7 +29,8 @@ class GazePatchDataset(Dataset):
                  target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
                  mode='train',
                  train_val_test_split=1.0,
-                 transform=identity):
+                 transform=identity,
+                 min_max_duration_pth='./dataset_t_info.json'):
         """param:dataset_path is the directory containing the dataset gaze_patch raw data
            param:target_labels is a list of anomalies within those present in the dataset to return as ground truths
            param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
@@ -60,6 +62,26 @@ class GazePatchDataset(Dataset):
         self.transform = transform
         self.fixations = GazePatchDataset.load_sort_fnames(self.fixations_path)
 
+        #normalizing fixation duration to 0 a 1 range
+        #using log transform on min max t
+        if os.path.exists(min_max_duration_pth):
+            with open(min_max_duration_pth, 'r') as fp:
+                minmax = json.load(fp)
+            self.min_log_t = minmax['min_log']
+            self.max_log_t = minmax['max_log']
+        else: #find min and max t for all dataset
+            self.min_log_t = float('inf')
+            self.max_log_t = float('-inf')
+            for fix_pth in self.fixations:
+                pth = os.path.sep.join([self.fixations_path, fix_pth])
+                with open(pth, 'r') as fp:
+                    fix = json.load(pth)
+                log_t = log(fix['t'])
+                self.min_log_t = min(self.min_log_t, log_t)
+                self.max_log_t = max(self.max_log_t, log_t)                                               
+                                    
+                        
+
         gaze_patches_fns = GazePatchDataset.load_sort_fnames(self.gaze_patches_path)
         self.gaze_patches = {pth.split(os.path.sep)[-1]: pth
                              for pth in gaze_patches_fns}
@@ -72,8 +94,12 @@ class GazePatchDataset(Dataset):
 
         self.mode = None
         self.set_mode(mode)
-        
 
+        
+    def normalize_t(self, t):
+        return (log(t) - self.min_log_t) / (self.max_log_t - self.min_log_t)
+
+    
     def assign_split_idxs(self):
         if self.mode == GazePatchDataset.train:
             self.split_idxs = self.train_idxs
