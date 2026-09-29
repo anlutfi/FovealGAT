@@ -4,7 +4,9 @@ import torch.nn.functional as F
 
 from model.tools import adjust_args
 from model.gat_conv import CausalGATConv
+from model.xyt_gat_conv import CausalXYTGATConv
 from model.residual_sequential import ResidualSequential
+from gaze_datasets.dataset_tools import get_xyt_pair_matrices
 
 
 class GazeGrapher(nn.Module):
@@ -69,4 +71,32 @@ class GazeGrapher(nn.Module):
     def forward(self, x):
         nodes, splits, *args = x
         graphs = self.gats((nodes, splits, *args))
+        return graphs
+
+
+class XYTGazeGrapher(GazeGrapher):
+    def __init__(self,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
+                 gat_conv_args={'channels': [67, 134, 134, 134, 67],
+                                'att_heads': 8,
+                                'xy_heads_ratio': 0.2,
+                                't_heads_ratio': 0.1,
+                                'act_att': F.leaky_relu,
+                                'act_gat': F.elu,
+                                'norm': GraphNorm,
+                                'dropout': 0.1,
+                                'bias': True,
+                                'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
+                 device='cpu'):
+        super().__init__(CausalXYTGATConv,
+                         output_gat_levels,
+                         residual_gat_levels,
+                         gat_conv_args,
+                         device)
+
+    def forward(self, x):
+        nodes, splits, fixations = x
+        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        graphs = self.gats((nodes, splits, xy_mats, t_mats))
         return graphs
