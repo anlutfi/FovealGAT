@@ -46,7 +46,7 @@ class CausalReadout(nn.Module):
                                                                 1,
                                                                 bias=bias[i - 1],
                                                                 device=device))
-            self.mlp.add_module('norm{}'.format(i), norm[i - 1](channels[i], device=device))
+            self.mlp.add_module('norm{}'.format(i), norm[i - 1](num_groups=1, num_channels=channels[i], device=device))
             self.mlp.add_module('act{}'.format(i), act[i - 1]())
             self.mlp.add_module('drop{}'.format(i), nn.Dropout(dropout[i - 1]))
             if i == len(channels) - 1:
