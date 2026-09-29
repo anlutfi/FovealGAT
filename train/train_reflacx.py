@@ -294,7 +294,7 @@ if __name__ == '__main__':
                                         output_pth_head,
                                         session_dir,
                                         best=True)
-                    print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch))
+                    print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch + 1))
 
             stats['epoch_val'][epoch] = {'total_loss': running_loss,
                                          'avg_loss': running_loss / sample_count}
