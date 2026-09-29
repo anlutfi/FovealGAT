@@ -132,7 +132,9 @@ if __name__ == '__main__':
                                         train_time,
                                         'session_{}'.format(session)])
         os.makedirs(session_dir, exist_ok=True)
-        print('Beginning training session {} of {}\n'.format(session + 1, sessions))
+        print('REFLACX -- {} -- Beginning training session {} of {}\n'.format(desired_label,
+                                                                              session + 1,
+                                                                              sessions))
         
         feat_ext = GazePatchFeatureExtractor(fe_tail_feat_ext,
                                              args['pretrained_sd'],
@@ -195,7 +197,9 @@ if __name__ == '__main__':
         for epoch in range(epochs):
             
             # Train
-            print('Session: {}  --  Epoch: {} of {}'.format(session + 1, epoch + 1, epochs))
+            print('REFLACX -- {} -- Session: {}  --  Epoch: {} of {}'.format(desired_label,
+                                                                             session + 1,
+                                                                             epoch + 1, epochs))
             model.train()
             dataset.set_mode('train')
             loader = DataLoader(dataset,
