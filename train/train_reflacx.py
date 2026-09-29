@@ -97,7 +97,7 @@ if __name__ == '__main__':
     ro_hidden_act = nn.GELU
     ro_pred_act = nn.Identity
     ro_dropout = 0.15
-    ro_norm = nn.BatchNorm1d
+    ro_norm = nn.GroupNorm
     ro_bias = True
     ro_w_init_f = lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')
 
