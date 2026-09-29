@@ -83,7 +83,7 @@ class CausalGATConv(GATConv):
     where each node sees only itself and their predecessors
     """
     def forward(self, x):
-        nodes, splits = x
+        nodes, splits, *_ = x
         # normalize graph
         batch_idx = torch.cat([torch.ones(s, dtype=torch.int) * i
                                for i, s in enumerate(splits)]).to(self.device)
@@ -145,7 +145,7 @@ class FullGATConv(GATConv):
     """A GATConv layer for a complete graph
     """
     def forward(self, x):
-        nodes, splits = x
+        nodes, splits, *_ = x
         # normalize graph
         batch_idx = torch.cat([torch.ones(s, dtype=torch.int) * i
                                for i, s in enumerate(splits)]).to(self.device)

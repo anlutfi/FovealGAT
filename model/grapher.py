@@ -76,6 +76,7 @@ class GazeGrapher(nn.Module):
 
 class XYTGazeGrapher(GazeGrapher):
     def __init__(self,
+                 gat_conv=None,
                  output_gat_levels=None,
                  residual_gat_levels=None,
                  gat_conv_args={'channels': [67, 134, 134, 134, 67],
