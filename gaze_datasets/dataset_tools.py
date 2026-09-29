@@ -37,3 +37,29 @@ def max_fixation_sequence_len(gaze_dataset_pth):
             max_len = max(max_len, len(json.load(fp)))
 
     return max_len
+
+
+def all_pairs(t):
+    t = t.unsqueeze(-1)
+    mat = torch.tile(t, (1, 1, t.shape[1]))
+    matT = torch.transpose(mat, 2, 1)
+    adjs = torch.cat((mat, matT), dim=0)
+    return adjs
+
+
+def get_xyt_pair_matrices(fixations, splits):
+    fixations = fixations.squeeze(-1).squeeze(-1)
+    ts, xs, ys = torch.split(fixations, (1, 1, 1), dim=-1)
+    
+    ts = ts.transpose(1, 0)
+    xs = xs.transpose(1, 0)
+    ys = ys.transpose(1, 0)
+
+    ts = torch.split(ts, splits, dim=-1)
+    xys = torch.cat((xs, ys), dim=0)
+    xys = torch.split(xys, splits, dim=-1)
+
+    xy_mats = [all_pairs(c) for c in xys]
+    t_mats = [all_pairs(t) for t in ts]
+
+    return xy_mats, t_mats
