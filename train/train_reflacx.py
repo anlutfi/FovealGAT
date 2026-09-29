@@ -60,18 +60,33 @@ if __name__ == '__main__':
     from torch.nn import functional as F
     from torch_geometric.nn.norm import GraphNorm
     import model.gat_conv as convs
+    from model.xyt_gat_conv import CausalXYTGATConv
+        
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
-    grph_gat_conv = convs.CausalGATConv
+    grph_gat_conv = CausalXYTGATConv
     grph_channels = [in_channels, 256, 256, 256, 256, 256, 256, 256, 256]
     grph_residual_gat_levels = [False, True, False, True, True, True, True]
     grph_output_gat_levels = None
     grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8, 8]
+    grph_xy_heads_ratio=0.2
+    grph_t_heads_ratio=0.1
     grph_act_att = F.leaky_relu
     grph_act_gat = F.elu
     grph_norm = GraphNorm
     grph_dropout = 0.15
     grph_bias = True
     grph_w_init_f = lambda w: nn.init.xavier_uniform_(w)
+
+    gat_conv_args={'channels': grph_channels,
+                   'att_heads': grph_att_heads,
+                   'xy_heads_ratio': grph_xy_heads_ratio,
+                   't_heads_ratio': grph_t_heads_ratio,
+                   'act_att': grph_act_att,
+                   'act_gat': grph_act_gat,
+                   'norm': grph_norm,
+                   'dropout': grph_dropout,
+                   'bias': grph_bias,
+                   'w_init_f': grph_w_init_f}
 
     #### Readout
     import model.readout as readouts
@@ -118,7 +133,7 @@ if __name__ == '__main__':
     encoder = GazeSinCosPosEncoding(max_len, seq_encoding_feat_count)
 
     ds_name = dataset_pth.split(os.path.sep)[-1]
-    output_pth_head = '_'.join(['reflacx',
+    output_pth_head = '_'.join(['xytreflacx',
                                 ds_name,
                                 desired_label,
                                 criterion_clss.__name__,
@@ -149,14 +164,8 @@ if __name__ == '__main__':
                             grph_output_gat_levels,
                             grph_residual_gat_levels,
                             grph_gat_conv,
+                            gat_conv_args,
                             readout,
-                            grph_channels,
-                            grph_att_heads,
-                            grph_act_att,
-                            grph_act_gat,
-                            grph_norm,
-                            grph_dropout,
-                            grph_bias,
                             ro_hidden_features,
                             ro_out_channels,
                             ro_hidden_act,
@@ -164,7 +173,6 @@ if __name__ == '__main__':
                             ro_dropout,
                             ro_norm,
                             ro_bias,
-                            grph_w_init_f,
                             ro_w_init_f,
                             device)
         
