@@ -67,7 +67,18 @@ class XYTGATConv(nn.Module):
         self.dropout = nn.Dropout(p=dropout) if dropout > 0.0 else nn.Identity()
 
         self.att_scores.apply(lambda m: init_weights(m, w_init_f))
+        #self.xy_scores.apply(lambda m: init_weights(m, w_init_f))
+        #self.t_scores.apply(lambda m: init_weights(m, w_init_f))
         self.node_update.apply(lambda m: init_weights(m, w_init_f))
+
+        nn.init.uniform_(self.xy_scores.weight, a=-0.01, b=0.01)
+        nn.init.uniform_(self.t_scores.weight, a=-0.01, b=0.01)
+
+        # Zero out their biases so there is no static offset at launch
+        if self.xy_scores.bias is not None:
+            nn.init.zeros_(self.xy_scores.bias)
+        if self.t_scores.bias is not None:
+            nn.init.zeros_(self.t_scores.bias)
                 
 
     def forward(self, x):
