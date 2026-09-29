@@ -24,7 +24,7 @@ class XYTGATConv(nn.Module):
                  act_att=F.leaky_relu,
                  act_gat=F.elu,
                  norm=GraphNorm,
-                 drop_prob=0.1,
+                 dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
                  device='cpu'):
@@ -64,7 +64,7 @@ class XYTGATConv(nn.Module):
                                      bias=bias)
 
         self.norm = norm(in_channels).to(self.device)
-        self.dropout = nn.Dropout(p=drop_prob) if drop_prob > 0.0 else nn.Identity()
+        self.dropout = nn.Dropout(p=dropout) if dropout > 0.0 else nn.Identity()
 
         self.att_scores.apply(lambda m: init_weights(m, w_init_f))
         self.node_update.apply(lambda m: init_weights(m, w_init_f))
@@ -85,7 +85,7 @@ class CausalXYTGATConv(XYTGATConv):
                  act_att=F.leaky_relu,
                  act_gat=F.elu,
                  norm=GraphNorm,
-                 drop_prob=0.1,
+                 dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
                  device='cpu'):
@@ -97,7 +97,7 @@ class CausalXYTGATConv(XYTGATConv):
                          act_att,
                          act_gat,
                          norm,
-                         drop_prob,
+                         dropout,
                          bias,
                          w_init_f,
                          device)

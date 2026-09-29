@@ -17,15 +17,7 @@ class ResidualSequential(nn.Sequential):
     def add_conv(self,
                  name,
                  in_channels,
-                 out_channels,
-                 heads,
-                 act_a,
-                 act_g,
-                 norm,
-                 dropout,
-                 bias,
-                 w_init_f,
-                 device):
+                 **kwargs):
         i = len(self)
         if i == 0:
             self.first_residual_channels = in_channels
@@ -33,15 +25,7 @@ class ResidualSequential(nn.Sequential):
             in_channels += self.first_residual_channels
         self.add_module(name,
                         self.gat_conv(in_channels,
-                                      out_channels,
-                                      heads,
-                                      act_a,
-                                      act_g,
-                                      norm,
-                                      dropout,
-                                      bias,
-                                      w_init_f,
-                                      device))
+                                      **kwargs))
 
 
     def forward(self, x):
