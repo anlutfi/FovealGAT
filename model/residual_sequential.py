@@ -45,14 +45,14 @@ class ResidualSequential(nn.Sequential):
 
 
     def forward(self, x):
-        first_nodes, splits = x
+        first_nodes, splits, *args = x
         nodes = first_nodes
 
         result = []
         for i, module in enumerate(self): #, 1):
             if i > 0 and self.residual_lvls[i - 1]:
                 nodes = torch.cat([nodes, first_nodes], dim=0)
-            nodes = module((nodes, splits))
+            nodes = module((nodes, splits, *args))
             if i in self.output_lvls:
                 result.append(nodes)
         return result
