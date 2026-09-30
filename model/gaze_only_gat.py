@@ -54,6 +54,9 @@ class GazeOnlyGAT(nn.Module):
 
         node_dims = self.feat_ext.head[-3].in_channels + self.encoder.feature_count + 3 #x, y, t
         self.expand_dims = nn.Conv1d(node_dims, gat_conv_args['channels'], 1).to(self.device)
+        nn.init.xavier_uniform_(self.expand_dims.weight)
+        if self.expand_dims.bias is not None:
+            nn.init.zeros_(self.expand_dims.bias)
 
         self.grapher = GazeOnlyGAT.graphers[gat_conv.__name__](gat_conv,
                                                                residual_sequential,
