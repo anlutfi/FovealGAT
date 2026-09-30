@@ -64,13 +64,16 @@ if __name__ == '__main__':
     from torch_geometric.nn.norm import GraphNorm
     import model.gat_conv as convs
     from model.xyt_gat_conv import CausalXYTGATConv
+    from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
         
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
     grph_gat_conv = CausalXYTGATConv
-    grph_channels = [in_channels, 256, 256, 256, 256, 256, 256, 256, 256]
+    grph_res_seq = MarkovResidualSequential
+    grph_layers = 8
+    grph_channels = 256
     grph_residual_gat_levels = [False, True, True, True, True, True, True, True]
     grph_output_gat_levels = None
-    grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8, 8]
+    grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]
     grph_xy_heads_ratio=0.2
     grph_t_heads_ratio=0.1
     grph_act_att = F.leaky_relu
@@ -81,7 +84,6 @@ if __name__ == '__main__':
     grph_w_init_f = lambda w: nn.init.xavier_uniform_(w)
 
     gat_conv_args={'channels': grph_channels,
-                   'att_heads': grph_att_heads,
                    'xy_heads_ratio': grph_xy_heads_ratio,
                    't_heads_ratio': grph_t_heads_ratio,
                    'act_att': grph_act_att,
@@ -164,9 +166,12 @@ if __name__ == '__main__':
                                             device)
         model = GazeOnlyGAT(feat_ext,
                             encoder,
+                            grph_gat_conv,
+                            grph_res_seq,
+                            grph_layers,
                             grph_output_gat_levels,
                             grph_residual_gat_levels,
-                            grph_gat_conv,
+                            grph_att_heads,
                             gat_conv_args,
                             readout,
                             ro_hidden_features,
