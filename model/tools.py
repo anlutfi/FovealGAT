@@ -49,5 +49,5 @@ def init_weights(model, init_f, classes=classes_to_init):
         init_f(model.weight)
         model.weight.requires_grad = True
         if model.bias is not None:
-            model.bias.data.zero_()
+            nn.init.zeros_(model.bias)
             model.bias.requires_grad = True
