@@ -11,7 +11,7 @@ class CausalReadout(nn.Module):
                  act=nn.GELU,
                  pred_act=nn.Identity,
                  dropout=0.0,
-                 norm=nn.BatchNorm1d,
+                 norm=nn.GroupNorm,
                  bias=True,
                  w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
                  device='cpu'):

@@ -84,10 +84,11 @@ from torch_geometric.nn.norm import GraphNorm
 import model.gat_conv as convs
 in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
 grph_gat_conv = convs.CausalGATConv
-grph_channels = [in_channels, 256, 256, 256, 256]
+grph_layers = 8
+grph_channels = 256
 grph_residual_gat_levels = [False, True, False]
 grph_output_gat_levels = None
-grph_att_heads = [16, 8, 8, 8, 8]
+grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]
 grph_xy_heads_ratio=0.2
 grph_t_heads_ratio=0.1
 grph_act_att = F.leaky_relu

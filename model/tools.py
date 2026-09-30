@@ -21,6 +21,22 @@ def adjust_args(args):
     return args
 
 
+def adjust_args_to_len(target_len, args):
+    """given a list of arguments param:args:
+    if the first argument is not a list, make it into one.
+    for all following args: if it is a single value,
+        repeat it into a list of the same len as the first one.
+        if it is already a list, assert it has the same len as the first one"""
+    if args.__class__ not in (tuple, list):
+        args = [args]
+    for i, arg in enumerate(args):
+        if arg.__class__ not in (tuple, list):
+            args[i] = [arg for j in range(target_len)]
+        else:
+            assert len(arg) == target_len, "wrong len for parameter {}".format(i)
+    return args
+
+
 # TODO maybe put this in an general params file
 classes_to_init = [nn.Conv2d,
                    nn.Conv1d]

@@ -18,11 +18,12 @@ class GazeOnlyGAT(nn.Module):
     def __init__(self,
                  feat_extractor,
                  encoder,
+                 gat_conv=CausalGATConv,
+                 gat_layers=8,
                  output_gat_levels=None,
                  residual_gat_levels=None,
-                 gat_conv=CausalGATConv,
-                 gat_conv_args={'channels': [67, 134, 134, 134, 67],
-                                'att_heads': 8,
+                 gat_att_heads=8,
+                 gat_conv_args={'channels': 256,
                                 'act_att': F.leaky_relu,
                                 'act_gat': F.elu,
                                 'norm': GraphNorm,
@@ -35,7 +36,7 @@ class GazeOnlyGAT(nn.Module):
                  ro_act=nn.GELU,
                  ro_pred_act=nn.Identity,
                  ro_dropout=0.0,
-                 ro_norm=nn.BatchNorm1d,
+                 ro_norm=nn.GroupNorm,
                  ro_bias=True,
                  ro_w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
                  device='cpu'):
@@ -49,9 +50,14 @@ class GazeOnlyGAT(nn.Module):
         self.feat_ext = feat_extractor
         self.encoder = encoder
 
+        node_dims = self.feat_ext.head[-3].in_channels + self.encoder.feature_count + 3 #x, y, t
+        self.expand_dims = nn.Conv1d(node_dims, gat_conv_args['channels'], 1).to(self.device)
+
         self.grapher = GazeOnlyGAT.graphers[gat_conv.__name__](gat_conv,
+                                                               gat_layers,
                                                                output_gat_levels,
                                                                residual_gat_levels,
+                                                               gat_att_heads,
                                                                gat_conv_args,
                                                                device=device)
 
@@ -80,6 +86,7 @@ class GazeOnlyGAT(nn.Module):
 
         nodes = torch.cat([fixations, encodings, feats], 1).float()
         nodes = nodes.squeeze(-1).squeeze(-1).permute((1, 0))
+        nodes = self.expand_dims(nodes)
         
         graphs = self.grapher((nodes, splits, fixations))
         predictions = self.readout((graphs, splits))
