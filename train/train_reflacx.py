@@ -79,7 +79,7 @@ if __name__ == '__main__':
     grph_act_att = F.leaky_relu
     grph_act_gat = F.elu
     grph_norm = GraphNorm
-    grph_dropout = 0.15
+    grph_dropout = 0.3
     grph_bias = True
     grph_w_init_f = lambda w: nn.init.xavier_uniform_(w)
 
@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ro_out_channels = 1
     ro_hidden_act = nn.GELU
     ro_pred_act = nn.Identity
-    ro_dropout = 0.15
+    ro_dropout = 0.3
     ro_norm = nn.GroupNorm
     ro_bias = True
     ro_w_init_f = lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')
