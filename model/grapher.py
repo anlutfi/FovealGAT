@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from model.tools import adjust_args
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv
-from model.residual_sequential import ResidualSequential
+from model.residual_sequential import MarkovResidualSequential
 from gaze_datasets.dataset_tools import get_xyt_pair_matrices
 
 
@@ -43,7 +43,7 @@ class GazeGrapher(nn.Module):
             assert l < len(channels)
 
         if residual_gat_levels is None or len(residual_gat_levels) == 0:
-            residual_gat_levels = [True for i in range(len(channels) - 2)]
+            residual_gat_levels = [True for i in range(len(channels) - 1)]
 
         assert len(residual_gat_levels) == len(channels) - 2
         for i, l in enumerate(residual_gat_levels):
@@ -53,9 +53,9 @@ class GazeGrapher(nn.Module):
 
         self.device = device
 
-        self.gats = ResidualSequential(output_gat_levels,
-                                       residual_gat_levels,
-                                       gat_conv).to(device)
+        self.gats = MarkovResidualSequential(output_gat_levels,
+                                             residual_gat_levels,
+                                             gat_conv).to(device)
         
         for i, args in enumerate([{k: gat_conv_args[k][i]
                                    for k in gat_conv_args

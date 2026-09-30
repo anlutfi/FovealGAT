@@ -5,6 +5,7 @@ if __name__ == '__main__':
     import json
     import torch
     from torch import nn
+    import torchvision.transforms as T
 
     from train_tools import get_loss, get_optim, choose_device
 
@@ -37,7 +38,9 @@ if __name__ == '__main__':
     dataset_pth = args['dataset_pth']
 
     train_val_test_split = [0.7, 0.2, 0.1]
-    transform = nn.Identity()
+    transform = T.Compose([T.RandomHorizontalFlip(p=0.5), #TODO controversial
+                           T.RandomRotation(degrees=7),
+                           T.ColorJitter(brightness=0.05, contrast=0.05)])
     batch_size = 5
     acc_steps = 8
     dl_num_workers = 4
@@ -65,7 +68,7 @@ if __name__ == '__main__':
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
     grph_gat_conv = CausalXYTGATConv
     grph_channels = [in_channels, 256, 256, 256, 256, 256, 256, 256, 256]
-    grph_residual_gat_levels = [False, True, False, True, True, True, True]
+    grph_residual_gat_levels = [False, True, True, True, True, True, True, True]
     grph_output_gat_levels = None
     grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8, 8]
     grph_xy_heads_ratio=0.2
