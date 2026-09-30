@@ -7,6 +7,7 @@ from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv
+from model.residual_sequential import MarkovResidualSequential
 from model.readout import CausalReadout
 from model.grapher import GazeGrapher, XYTGazeGrapher
 
@@ -19,6 +20,7 @@ class GazeOnlyGAT(nn.Module):
                  feat_extractor,
                  encoder,
                  gat_conv=CausalGATConv,
+                 residual_sequential=MarkovResidualSequential,
                  gat_layers=8,
                  output_gat_levels=None,
                  residual_gat_levels=None,
@@ -54,6 +56,7 @@ class GazeOnlyGAT(nn.Module):
         self.expand_dims = nn.Conv1d(node_dims, gat_conv_args['channels'], 1).to(self.device)
 
         self.grapher = GazeOnlyGAT.graphers[gat_conv.__name__](gat_conv,
+                                                               residual_sequential,
                                                                gat_layers,
                                                                output_gat_levels,
                                                                residual_gat_levels,

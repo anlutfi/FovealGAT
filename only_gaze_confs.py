@@ -82,8 +82,10 @@ seq_encoding_feat_count = 16
 from torch.nn import functional as F
 from torch_geometric.nn.norm import GraphNorm
 import model.gat_conv as convs
+from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
 in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
 grph_gat_conv = convs.CausalGATConv
+grph_res_seq = MarkovResidualSequential
 grph_layers = 8
 grph_channels = 256
 grph_residual_gat_levels = [False, True, True, True, True, True, True, True]

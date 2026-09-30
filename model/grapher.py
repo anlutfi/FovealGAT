@@ -5,13 +5,14 @@ import torch.nn.functional as F
 from model.tools import adjust_args_to_len
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv
-from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
+from model.residual_sequential import MarkovResidualSequential
 from gaze_datasets.dataset_tools import get_xyt_pair_matrices
 
 
 class GazeGrapher(nn.Module):
     def __init__(self,
                  gat_conv=CausalGATConv,
+                 residual_sequential=MarkovResidualSequential,
                  layers=8,
                  output_gat_levels=None,
                  residual_gat_levels=None,
@@ -59,9 +60,9 @@ class GazeGrapher(nn.Module):
 
         self.device = device
 
-        self.gats = MarkovResidualSequential(output_gat_levels,
-                                             residual_gat_levels,
-                                             gat_conv).to(device)
+        self.gats = residual_sequential(output_gat_levels,
+                                        residual_gat_levels,
+                                        gat_conv).to(device)
         
         for i in range(layers):
             gat_conv_args['att_heads'] = att_heads[i]
@@ -88,6 +89,7 @@ class GazeGrapher(nn.Module):
 class XYTGazeGrapher(GazeGrapher):
     def __init__(self,
                  gat_conv=None,
+                 residual_sequential=MarkovResidualSequential,
                  layers=8,
                  output_gat_levels=None,
                  residual_gat_levels=None,
@@ -103,6 +105,7 @@ class XYTGazeGrapher(GazeGrapher):
                                 'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
                  device='cpu'):
         super().__init__(CausalXYTGATConv,
+                         residual_sequential,
                          layers,
                          output_gat_levels,
                          residual_gat_levels,
