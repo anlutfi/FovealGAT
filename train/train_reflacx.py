@@ -63,11 +63,11 @@ if __name__ == '__main__':
     from torch.nn import functional as F
     from torch_geometric.nn.norm import GraphNorm
     import model.gat_conv as convs
-    from model.xyt_gat_conv import CausalXYTGATConv
+    from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
     from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
         
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
-    grph_gat_conv = CausalXYTGATConv
+    grph_gat_conv = CausalEuclideanTGATConv
     grph_res_seq = MarkovResidualSequential
     grph_layers = 8
     grph_channels = 512
