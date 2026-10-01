@@ -132,7 +132,8 @@ if __name__ == '__main__':
         mname = '_'.join(['best' if best else 'last', output_pth_head])
         mname = '.'.join([mname, 'pt'])
         mname = mname.replace(' ', '_')
-        torch.save(checkpoint, os.path.sep.join([session_dir, mname]))
+        mpath = os.path.sep.join([session_dir, mname])
+        torch.save(checkpoint, mpath)
     
     
     encoder = GazeSinCosPosEncoding(max_len, seq_encoding_feat_count)
@@ -147,6 +148,8 @@ if __name__ == '__main__':
         args_dump = fp.read()
     train_time = datetime.now().strftime("%Y%m%d_%H%M")
     for session in range(sessions):
+        last_mpath = None
+        best_mpath = None
         session_dir = os.path.sep.join([stored_model_pth,
                                         output_pth_head,
                                         train_time,
@@ -185,10 +188,10 @@ if __name__ == '__main__':
                             device)
         
         dataset = reflacx.ReflacxGazePatchDataset(dataset_pth,
-                                                desired_label,
-                                                mode='train',
-                                                train_val_test_split=train_val_test_split,
-                                                transform=transform)
+                                                  desired_label,
+                                                  mode='train',
+                                                  train_val_test_split=train_val_test_split,
+                                                  transform=transform)
 
         criterion = criterion_clss()
         if pretrained_lr is not None:
@@ -283,25 +286,27 @@ if __name__ == '__main__':
             avg_val_loss = running_loss / sample_count
             if epoch == epochs - 1:
                 #TODO run test split
-                save_model_checkpoint(epoch + 1,
-                                      model,
-                                      optimizer,
-                                      avg_val_loss,
-                                      args_dump,
-                                      output_pth_head,
-                                      session_dir,
-                                      best=avg_val_loss < min_val_loss)
+                last_mpath = save_model_checkpoint(epoch + 1,
+                                                   model,
+                                                   optimizer,
+                                                   avg_val_loss,
+                                                   args_dump,
+                                                   output_pth_head,
+                                                   session_dir,
+                                                   best=avg_val_loss < min_val_loss)
+                if avg_val_loss < min_val_loss:
+                    best_mpath = last_mpath
             elif avg_val_loss < min_val_loss:
                 min_val_loss = avg_val_loss
                 if store_best_model:
-                    save_model_checkpoint(epoch + 1,
-                                        model,
-                                        optimizer,
-                                        min_val_loss,
-                                        args_dump,
-                                        output_pth_head,
-                                        session_dir,
-                                        best=True)
+                    best_mpath = save_model_checkpoint(epoch + 1,
+                                                       model,
+                                                       optimizer,
+                                                       min_val_loss,
+                                                       args_dump,
+                                                       output_pth_head,
+                                                       session_dir,
+                                                       best=True)
                     print('epoch: {} best val loss so far, saved model checkpoint'.format(epoch + 1))
 
             stats['epoch_val'][epoch] = {'total_loss': running_loss,
@@ -310,7 +315,11 @@ if __name__ == '__main__':
             print("epoch: {}     avg val loss: {:.4f}".format(epoch + 1, avg_val_loss))
             print()
 
-        # TEST for current session
+        # TEST for current session (model with best val losses during training)
+        best_checkpoint = torch.load(best_mpath)
+        best_model_sd = best_checkpoint['model']
+        model.load_state_dict(best_model_sd)
+        model.to(device)
         model.eval()
         test_loss = 0.0
         test_samples = 0
