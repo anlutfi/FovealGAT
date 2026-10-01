@@ -324,6 +324,10 @@ if __name__ == '__main__':
         test_loss = 0.0
         test_samples = 0
 
+        stats['dataset_split'] = {'train': dataset.train_idxs,
+                                  'val': dataset.val_idxs,
+                                  'test': dataset.test_idxs}
+        
         dataset.set_mode('test')
         loader = DataLoader(dataset,
                             batch_size=batch_size,

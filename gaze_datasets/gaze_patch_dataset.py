@@ -116,6 +116,13 @@ class GazePatchDataset(Dataset):
             self.split_idxs = self.test_idxs
 
 
+    def load_splits_from_training(self, splits):
+        self.train_idxs = splits['train']
+        self.val_idxs = splits['val']
+        self.test_idxs = splits['test']
+        self.assign_split_idxs()                
+
+
     def set_mode(self, mode):
         assert mode.__class__ == str
         mode = mode.lower()
