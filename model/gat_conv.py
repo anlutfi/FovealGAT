@@ -93,7 +93,6 @@ class CausalGATConv(GATConv):
         
         # generate adjacency matrix for whole batch
         subnodes = torch.split(nodes, splits, dim=1)
-        subnodes = [self.dropout(sn) for sn in subnodes]
         adjs = [GATConv.adj_mat(ns) for ns in subnodes]
 
         # generate raw attention scores
@@ -117,7 +116,7 @@ class CausalGATConv(GATConv):
         gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-        return self.act_gat(self.node_update(gatconv))
+        return self.dropout(self.act_gat(self.node_update(gatconv)))
         
 
 class FullGATConv(GATConv):
@@ -155,7 +154,6 @@ class FullGATConv(GATConv):
                 
         # generate adjacency matrix for whole batch
         subnodes = torch.split(nodes, splits, dim=1)
-        subnodes = [self.dropout(sn) for sn in subnodes]
         adjs = [GATConv.adj_mat(ns) for ns in subnodes]
 
         # generate raw attention scores
@@ -168,5 +166,5 @@ class FullGATConv(GATConv):
         gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-        return self.act_gat(self.node_update(gatconv))
+        return self.dropout(self.act_gat(self.node_update(gatconv)))
         
