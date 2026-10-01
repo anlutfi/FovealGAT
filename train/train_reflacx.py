@@ -134,6 +134,7 @@ if __name__ == '__main__':
         mname = mname.replace(' ', '_')
         mpath = os.path.sep.join([session_dir, mname])
         torch.save(checkpoint, mpath)
+        return mpath
     
     
     encoder = GazeSinCosPosEncoding(max_len, seq_encoding_feat_count)
@@ -284,8 +285,9 @@ if __name__ == '__main__':
                     running_loss += loss * len(splits)
                     sample_count += len(splits)
             avg_val_loss = running_loss / sample_count
+            print("epoch: {}   total val loss: {:.4f}".format(epoch + 1, running_loss))
+            print("epoch: {}     avg val loss: {:.4f}".format(epoch + 1, avg_val_loss))
             if epoch == epochs - 1:
-                #TODO run test split
                 last_mpath = save_model_checkpoint(epoch + 1,
                                                    model,
                                                    optimizer,
@@ -311,8 +313,6 @@ if __name__ == '__main__':
 
             stats['epoch_val'][epoch] = {'total_loss': running_loss,
                                          'avg_loss': running_loss / sample_count}
-            print("epoch: {}   total val loss: {:.4f}".format(epoch + 1, running_loss))
-            print("epoch: {}     avg val loss: {:.4f}".format(epoch + 1, avg_val_loss))
             print()
 
         # TEST for current session (model with best val losses during training)
