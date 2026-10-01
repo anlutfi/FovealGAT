@@ -162,3 +162,42 @@ class CausalXYTGATConv(XYTGATConv):
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
         return self.act_gat(self.node_update(gatconv))
+
+
+class CausalEuclideanTGATConv(CausalXYTGATConv):
+    """A GATConv layer for a causal graph,
+        where each node sees only itself and their predecessors
+    """
+    def __init__(self,
+                 in_channels,
+                 out_channels,
+                 att_heads,
+                 xy_heads_ratio=0.2,
+                 t_heads_ratio=0.1,
+                 act_att=F.leaky_relu,
+                 act_gat=F.elu,
+                 norm=GraphNorm,
+                 dropout=0.1,
+                 bias=True,
+                 w_init_f=lambda w: nn.init.xavier_uniform_(w),
+                 device='cpu'):
+        super().__init__(in_channels,
+                         out_channels,
+                         att_heads,
+                         xy_heads_ratio,
+                         t_heads_ratio,
+                         act_att,
+                         act_gat,
+                         norm,
+                         dropout,
+                         bias,
+                         w_init_f,
+                         device)
+
+        xy_heads = self.xy_scores.out_channels
+        self.xy_scores = nn.Conv2d(7,# x1, y1, x2, y2, deltax, deltay, euc_dist
+                                   xy_heads,
+                                   1,
+                                   device=device,
+                                   bias=bias)
+    

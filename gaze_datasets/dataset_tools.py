@@ -63,3 +63,12 @@ def get_xyt_pair_matrices(fixations, splits):
     t_mats = [all_pairs(t) for t in ts]
 
     return xy_mats, t_mats
+
+def get_euclidean_encodings(xy_mat, eps=1e-8):
+    xy1, xy2 = torch.split(xy_mat, 2, dim=0)
+    x1, y1 = torch.split(xy1, 1, dim=0)
+    x2, y2 = torch.split(xy2, 1, dim=0)
+    delta_x = torch.abs(x2 - x1)
+    delta_y = torch.abs(y2 - y1)
+    euc_dist = torch.sqrt(delta_x ** 2 + delta_y ** 2 + eps)
+    return torch.cat([xy_mat, delta_x, delta_y, euc_dist], dim=0)

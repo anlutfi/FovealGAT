@@ -70,7 +70,7 @@ if __name__ == '__main__':
     grph_gat_conv = CausalXYTGATConv
     grph_res_seq = MarkovResidualSequential
     grph_layers = 8
-    grph_channels = 256
+    grph_channels = 512
     grph_residual_gat_levels = [False, True, True, True, True, True, True, True]
     grph_output_gat_levels = None
     grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]

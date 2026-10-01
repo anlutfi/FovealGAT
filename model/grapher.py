@@ -1,12 +1,13 @@
+import torch
 from torch import nn
 from torch_geometric.nn.norm import GraphNorm
 import torch.nn.functional as F
 
 from model.tools import adjust_args_to_len
 from model.gat_conv import CausalGATConv
-from model.xyt_gat_conv import CausalXYTGATConv
+from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
 from model.residual_sequential import MarkovResidualSequential
-from gaze_datasets.dataset_tools import get_xyt_pair_matrices
+from gaze_datasets.dataset_tools import get_xyt_pair_matrices, get_euclidean_encodings
 
 
 class GazeGrapher(nn.Module):
@@ -116,5 +117,40 @@ class XYTGazeGrapher(GazeGrapher):
     def forward(self, x):
         nodes, splits, fixations = x
         xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        graphs = self.gats((nodes, splits, xy_mats, t_mats))
+        return graphs
+
+
+class EuclideanTGazeGrapher(GazeGrapher):
+    def __init__(self,
+                 gat_conv=None,
+                 residual_sequential=MarkovResidualSequential,
+                 layers=8,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
+                 att_heads=8,
+                 gat_conv_args={'channels': 256,
+                                'xy_heads_ratio': 0.2,
+                                't_heads_ratio': 0.1,
+                                'act_att': F.leaky_relu,
+                                'act_gat': F.elu,
+                                'norm': GraphNorm,
+                                'dropout': 0.1,
+                                'bias': True,
+                                'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
+                 device='cpu'):
+        super().__init__(CausalEuclideanTGATConv,
+                         residual_sequential,
+                         layers,
+                         output_gat_levels,
+                         residual_gat_levels,
+                         att_heads,
+                         gat_conv_args,
+                         device)
+
+    def forward(self, x):
+        nodes, splits, fixations = x
+        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
         graphs = self.gats((nodes, splits, xy_mats, t_mats))
         return graphs
