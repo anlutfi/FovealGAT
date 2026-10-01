@@ -108,7 +108,7 @@ if __name__ == '__main__':
 
     from feature_extraction.extractors import GazePatchFeatureExtractor
     from node_encodings.sequence import GazeSinCosPosEncoding
-    from model.gaze_only_gat import GazeOnlyGAT
+    from model.foveal_gat import FovealGAT
     from gaze_datasets import reflacx
     from torch.utils.data import DataLoader
     from datetime import datetime
@@ -167,7 +167,7 @@ if __name__ == '__main__':
                                             fe_bias,
                                             fe_w_init_f,
                                             device)
-        model = GazeOnlyGAT(feat_ext,
+        model = FovealGAT(feat_ext,
                             encoder,
                             grph_gat_conv,
                             grph_res_seq,

@@ -13,7 +13,7 @@ from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher
 from model.tools import init_weights
 
 
-class GazeOnlyGAT(nn.Module):
+class FovealGAT(nn.Module):
     graphers = {CausalXYTGATConv.__name__: XYTGazeGrapher,
                 CausalGATConv.__name__: GazeGrapher,
                 CausalEuclideanTGATConv.__name__: EuclideanTGazeGrapher}
@@ -44,7 +44,7 @@ class GazeOnlyGAT(nn.Module):
                  ro_bias=True,
                  ro_w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
                  device='cpu'):
-        super(GazeOnlyGAT, self).__init__()
+        super(FovealGAT, self).__init__()
         self.device=device
 
         if feat_extractor is None:
@@ -58,7 +58,7 @@ class GazeOnlyGAT(nn.Module):
         self.expand_dims = nn.Conv1d(node_dims, gat_conv_args['channels'], 1).to(self.device)
         init_weights(self.expand_dims, nn.init.xavier_uniform_)
 
-        self.grapher = GazeOnlyGAT.graphers[gat_conv.__name__](gat_conv,
+        self.grapher = FovealGAT.graphers[gat_conv.__name__](gat_conv,
                                                                residual_sequential,
                                                                gat_layers,
                                                                output_gat_levels,
