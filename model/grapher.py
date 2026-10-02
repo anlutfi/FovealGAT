@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from model.tools import adjust_args_to_len
 from model.gat_conv import CausalGATConv
-from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
+from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
 from model.residual_sequential import MarkovResidualSequential
 from gaze_datasets.dataset_tools import get_xyt_pair_matrices, get_euclidean_encodings
 
@@ -88,8 +88,10 @@ class GazeGrapher(nn.Module):
 
 
 class XYTGazeGrapher(GazeGrapher):
+    gat_convs = [CausalXYTGATConv.__name__,
+                 CausalSummaryXYTGATConv.__name__]
     def __init__(self,
-                 gat_conv=None,
+                 gat_conv=CausalXYTGATConv,
                  residual_sequential=MarkovResidualSequential,
                  layers=8,
                  output_gat_levels=None,
@@ -105,7 +107,8 @@ class XYTGazeGrapher(GazeGrapher):
                                 'bias': True,
                                 'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
                  device='cpu'):
-        super().__init__(CausalXYTGATConv,
+        assert gat_conv.__name__ in XYTGazeGrapher.gat_convs
+        super().__init__(gat_conv,
                          residual_sequential,
                          layers,
                          output_gat_levels,
@@ -122,8 +125,10 @@ class XYTGazeGrapher(GazeGrapher):
 
 
 class EuclideanTGazeGrapher(GazeGrapher):
+    gat_convs = [CausalEuclideanTGATConv.__name__,
+                 CausalEuclideanSummaryTGATConv.__name__]
     def __init__(self,
-                 gat_conv=None,
+                 gat_conv=CausalEuclideanTGATConv,
                  residual_sequential=MarkovResidualSequential,
                  layers=8,
                  output_gat_levels=None,
@@ -139,7 +144,8 @@ class EuclideanTGazeGrapher(GazeGrapher):
                                 'bias': True,
                                 'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
                  device='cpu'):
-        super().__init__(CausalEuclideanTGATConv,
+        assert gat_conv.__name__ in EuclideanTGazeGrapher.gat_convs
+        super().__init__(gat_conv,
                          residual_sequential,
                          layers,
                          output_gat_levels,

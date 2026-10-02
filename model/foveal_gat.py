@@ -6,7 +6,7 @@ from torch_geometric.nn.norm import GraphNorm
 from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
 from model.gat_conv import CausalGATConv
-from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
+from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
 from model.residual_sequential import MarkovResidualSequential
 from model.readout import CausalReadout
 from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher
@@ -16,7 +16,9 @@ from model.tools import init_weights
 class FovealGAT(nn.Module):
     graphers = {CausalXYTGATConv.__name__: XYTGazeGrapher,
                 CausalGATConv.__name__: GazeGrapher,
-                CausalEuclideanTGATConv.__name__: EuclideanTGazeGrapher}
+                CausalEuclideanTGATConv.__name__: EuclideanTGazeGrapher,
+                CausalSummaryXYTGATConv.__name__: XYTGazeGrapher,
+                CausalEuclideanSummaryTGATConv.__name__: EuclideanTGazeGrapher}
     
     def __init__(self,
                  feat_extractor,
