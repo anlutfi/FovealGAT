@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from train.train_tools import get_act
+import os
 
 class Stem(nn.Module):
     """ Image to Visual Embedding
@@ -32,6 +33,7 @@ def pyramid_feature_extractor(pretrained_sd='./pretrained/pvig_ti_224_gelu.pt',
                               act='gelu',
                               device='cpu'):
     model = Stem(in_channels, out_channels, act)
-    sd = torch.load(pretrained_sd)
-    model.load_state_dict(sd)
+    if pretrained_sd is not None and os.path.exists(pretrained_sd):
+        sd = torch.load(pretrained_sd)
+        model.load_state_dict(sd)
     return model.to(device)

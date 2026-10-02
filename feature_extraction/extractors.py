@@ -1,5 +1,6 @@
 from torch import nn
 import torch
+import os
 from feature_extraction.pretrained import pyramid_feature_extractor
 from model.tools import init_weights, adjust_args
 
@@ -23,6 +24,8 @@ class GazePatchFeatureExtractor(nn.Module):
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
         self.tail = tail_feat_ext(state_dict_pth, device=device)
+        if state_dict_pth is None or not os.path.exists(state_dict_pth):
+            self.tail.apply(lambda m: init_weights(m, w_init_f))
 
         self.head = nn.Sequential().to(device)
         self.head.add_module('norm_0', norm[0](channels[0],
