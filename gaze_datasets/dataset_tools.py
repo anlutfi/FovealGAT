@@ -72,3 +72,35 @@ def get_euclidean_encodings(xy_mat, eps=1e-8):
     delta_y = torch.abs(y2 - y1)
     euc_dist = torch.sqrt(delta_x ** 2 + delta_y ** 2 + eps)
     return torch.cat([xy_mat, delta_x, delta_y, euc_dist], dim=0)
+
+
+def break_iterables(l):
+    result = []
+    [(result.append(x) if x.__class__ not in (tuple, list) else [result.append(y) for y in x]) for x in l]
+    return result
+
+def delta_bb(u1, v1, u2, v2):
+    d_u1v2 = torch.abs(u1 - v2)
+    d_u2v1 = torch.abs(u2 - v1)
+    return torch.min(torch.cat([d_u1v2, d_u2v1], dim=0), dim=0).values
+
+def area_bb(l, r, t, b):
+    return (r - l) * (b - t)
+
+def get_bbox_iou_encodings(bboxes):
+    l1, t1, r1, b1, l2, t2, r2, b2 = torch.split(bboxes, 1, dim=0)
+    
+    delta_lr = delta_bb(l1, r1, l2, r2)
+    delta_tb = delta_bb(t1, b1, t2, b2)
+    
+    intersection = (delta_tb * delta_lr).unsqueeze(0)
+    intersection[l2 >= r1] = 0.0
+    intersection[l1 >= r2] = 0.0
+    intersection[t2 >= b1] = 0.0
+    intersection[t1 >= b2] = 0.0
+    
+    area_1 = area_bb(l1, r1, t1, b1)
+    area_2 = area_bb(l2, r2, t2, b2)
+    
+    union = area_1 + area_2 - intersection
+    return intersection / union          
