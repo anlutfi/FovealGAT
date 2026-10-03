@@ -38,7 +38,7 @@ if __name__ == '__main__':
     dataset_pth = args['dataset_pth']
 
     train_val_test_split = [0.7, 0.2, 0.1]
-    transform = T.Compose([T.RandomHorizontalFlip(p=0.5), #TODO controversial
+    transform = T.Compose([T.RandomHorizontalFlip(p=0.5),
                            T.RandomRotation(degrees=7),
                            T.ColorJitter(brightness=0.05, contrast=0.05)])
     batch_size = 5
