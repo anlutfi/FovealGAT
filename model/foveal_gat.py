@@ -7,18 +7,23 @@ from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
+from model.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
 from model.residual_sequential import MarkovResidualSequential
 from model.readout import CausalReadout
-from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher
+from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher, IOU_XYTGazeGrapher ,IOU_EuclideanTGazeGrapher
 from model.tools import init_weights
 
 
 class FovealGAT(nn.Module):
-    graphers = {CausalXYTGATConv.__name__: XYTGazeGrapher,
-                CausalGATConv.__name__: GazeGrapher,
+    graphers = {CausalGATConv.__name__: GazeGrapher,
                 CausalEuclideanTGATConv.__name__: EuclideanTGazeGrapher,
+                CausalXYTGATConv.__name__: XYTGazeGrapher,
                 CausalSummaryXYTGATConv.__name__: XYTGazeGrapher,
-                CausalEuclideanSummaryTGATConv.__name__: EuclideanTGazeGrapher}
+                CausalEuclideanSummaryTGATConv.__name__: EuclideanTGazeGrapher,
+                CausalIOU_XYTGATConv.__name__: IOU_XYTGazeGrapher,
+                CausalIOU_EuclideanTGATConv.__name__: IOU_EuclideanTGazeGrapher,
+                CausalSummaryIOU_XYTGATConv.__name__: IOU_XYTGazeGrapher,
+                CausalEuclideanSummaryIOU_TGATConv.__name__: IOU_EuclideanTGazeGrapher}
     
     def __init__(self,
                  feat_extractor,

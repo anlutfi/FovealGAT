@@ -6,8 +6,9 @@ import torch.nn.functional as F
 from model.tools import adjust_args_to_len
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
+from model.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
 from model.residual_sequential import MarkovResidualSequential
-from gaze_datasets.dataset_tools import get_xyt_pair_matrices, get_euclidean_encodings
+from gaze_datasets.dataset_tools import all_pairs, get_xyt_pair_matrices, get_euclidean_encodings, get_bbox_iou_encodings
 
 
 class GazeGrapher(nn.Module):
@@ -159,4 +160,86 @@ class EuclideanTGazeGrapher(GazeGrapher):
         xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
         xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
         graphs = self.gats((nodes, splits, xy_mats, t_mats))
+        return graphs
+
+
+class IOU_XYTGazeGrapher(GazeGrapher):
+    gat_convs = [CausalIOU_XYTGATConv.__name__,
+                 CausalSummaryIOU_XYTGATConv.__name__]
+    def __init__(self,
+                 gat_conv=CausalIOU_XYTGATConv,
+                 residual_sequential=MarkovResidualSequential,
+                 layers=8,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
+                 att_heads=8,
+                 gat_conv_args={'channels': 256,
+                                'xy_heads_ratio': 0.2,
+                                't_heads_ratio': 0.1,
+                                'iou_heads_ratio': 0.2,
+                                'act_att': F.leaky_relu,
+                                'act_gat': F.elu,
+                                'norm': GraphNorm,
+                                'dropout': 0.1,
+                                'bias': True,
+                                'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
+                 device='cpu'):
+        assert gat_conv.__name__ in IOU_XYTGazeGrapher.gat_convs
+        super().__init__(gat_conv,
+                         residual_sequential,
+                         layers,
+                         output_gat_levels,
+                         residual_gat_levels,
+                         att_heads,
+                         gat_conv_args,
+                         device)
+
+    def forward(self, x):
+        nodes, splits, fixations = x
+        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        iou_mats = get_bbox_iou_encodings(bboxes, splits)
+        graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
+        return graphs
+
+
+class IOU_EuclideanTGazeGrapher(GazeGrapher):
+    gat_convs = [CausalIOU_EuclideanTGATConv.__name__,
+                 CausalEuclideanSummaryIOU_TGATConv.__name__]
+    def __init__(self,
+                 gat_conv=CausalIOU_EuclideanTGATConv,
+                 residual_sequential=MarkovResidualSequential,
+                 layers=8,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
+                 att_heads=8,
+                 gat_conv_args={'channels': 256,
+                                'xy_heads_ratio': 0.2,
+                                't_heads_ratio': 0.1,
+                                'iou_heads_ratio': 0.2,
+                                'act_att': F.leaky_relu,
+                                'act_gat': F.elu,
+                                'norm': GraphNorm,
+                                'dropout': 0.1,
+                                'bias': True,
+                                'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
+                 device='cpu'):
+        assert gat_conv.__name__ in IOU_EuclideanTGazeGrapher.gat_convs
+        super().__init__(gat_conv,
+                         residual_sequential,
+                         layers,
+                         output_gat_levels,
+                         residual_gat_levels,
+                         att_heads,
+                         gat_conv_args,
+                         device)
+
+    def forward(self, x):
+        nodes, splits, fixations = x
+        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
+        bboxes_pairs = all_pairs(bboxes)
+        iou_mats = get_bbox_iou_encodings(bboxes_pairs)
+        graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
         return graphs

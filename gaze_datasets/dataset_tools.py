@@ -90,7 +90,14 @@ def area_bb(l, r, t, b):
     return (r - l) * (b - t)
 
 
-def get_bbox_iou_encodings(bboxes):
+def get_bbox_iou_encodings(batch_bboxes, splits):
+    batch_bboxes = batch_bboxes.squeeze(-1).squeeze(-1)
+    batch_bboxes = torch.split(batch_bboxes, splits, dim=-1)
+    iou_mats = [all_pairs(bbs) for bbs in batch_bboxes]
+    return [get_bbox_iou(bbs) for bbs in iou_mats]
+
+
+def get_bbox_iou(bboxes):
     l1, t1, r1, b1, l2, t2, r2, b2 = torch.split(bboxes, 1, dim=0)
     
     delta_lr = delta_bb(l1, r1, l2, r2)
