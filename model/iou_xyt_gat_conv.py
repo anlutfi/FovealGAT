@@ -59,11 +59,11 @@ class IOU_XYTGATConv(nn.Module):
                                   bias=bias)
 
         iou_heads = max(1, floor((att_heads * iou_heads_ratio) + 0.5))
-        self.t_scores = nn.Conv2d(8,# 2 bounding boxes, each with left, top, right, bottom
-                                  t_heads,
-                                  1,
-                                  device=device,
-                                  bias=bias)
+        self.iou_scores = nn.Conv2d(1,# ious
+                                    iou_heads,
+                                    1,
+                                    device=device,
+                                    bias=bias)
 
         self.node_update = nn.Conv1d((att_heads + xy_heads + t_heads + iou_heads) * in_channels,
                                       out_channels,
@@ -153,8 +153,8 @@ class CausalIOU_XYTGATConv(IOU_XYTGATConv):
         
                 
         
-        rawscores = [torch.cat((sem, xy, t), dim=0)
-                     for sem, xy, t in zip(sem_raw_scores,
+        rawscores = [torch.cat((sem, xy, t, iou), dim=0)
+                     for sem, xy, t, iou in zip(sem_raw_scores,
                                            xy_raw_scores,
                                            t_raw_scores,
                                            iou_raw_scores)]        
@@ -283,8 +283,8 @@ class CausalSummaryIOU_XYTGATConv(IOU_XYTGATConv):
         # generate raw IOU scores
         iou_raw_scores = [self.act_att(self.iou_scores(iou_mat)) for iou_mat in iou_mats]
 
-        xytiou_raw_scores = [torch.cat((xy, t), dim=0)
-                             for xy, t in zip(xy_raw_scores,
+        xytiou_raw_scores = [torch.cat((xy, t, iou), dim=0)
+                             for xy, t, iou in zip(xy_raw_scores,
                                               t_raw_scores,
                                               iou_raw_scores)]
         

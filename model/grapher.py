@@ -184,8 +184,7 @@ class IOU_XYTGazeGrapher(GazeGrapher):
                          device)
 
     def forward(self, x):
-        nodes, splits, fixations = x
-        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+        nodes, splits, fixations, bboxes = x
         xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
         iou_mats = get_bbox_iou_encodings(bboxes, splits)
         graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
@@ -227,7 +226,6 @@ class IOU_EuclideanTGazeGrapher(GazeGrapher):
         nodes, splits, fixations, bboxes = x
         xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
         xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
-        bboxes_pairs = all_pairs(bboxes)
-        iou_mats = get_bbox_iou_encodings(bboxes_pairs)
+        iou_mats = get_bbox_iou_encodings(bboxes, splits)
         graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
         return graphs
