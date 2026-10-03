@@ -13,6 +13,9 @@ from model.readout import CausalReadout
 from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher, IOU_XYTGazeGrapher ,IOU_EuclideanTGazeGrapher
 from model.tools import init_weights
 
+from gaze_datasets.dataset_tools import get_bbox_iou_encodings
+
+
 
 class FovealGAT(nn.Module):
     graphers = {CausalGATConv.__name__: GazeGrapher,
@@ -53,6 +56,7 @@ class FovealGAT(nn.Module):
                  device='cpu'):
         super(FovealGAT, self).__init__()
         self.device=device
+        self.gat_conv = gat_conv
 
         if feat_extractor is None:
             feat_extractor = GazePatchFeatureExtractor(state_dict_pth='../pretrained/pvig_ti_224_gelu.pt',
@@ -66,13 +70,13 @@ class FovealGAT(nn.Module):
         init_weights(self.expand_dims, nn.init.xavier_uniform_)
 
         self.grapher = FovealGAT.graphers[gat_conv.__name__](gat_conv,
-                                                               residual_sequential,
-                                                               gat_layers,
-                                                               output_gat_levels,
-                                                               residual_gat_levels,
-                                                               gat_att_heads,
-                                                               gat_conv_args,
-                                                               device=device)
+                                                             residual_sequential,
+                                                             gat_layers,
+                                                             output_gat_levels,
+                                                             residual_gat_levels,
+                                                             gat_att_heads,
+                                                             gat_conv_args,
+                                                             device=device)
 
         ro_in_channels = sum([c.node_update.out_channels
                               for i, c in enumerate(self.grapher.gats)
@@ -102,5 +106,72 @@ class FovealGAT(nn.Module):
         nodes = self.expand_dims(nodes)
         
         graphs = self.grapher((nodes, splits, fixations))
+        predictions = self.readout((graphs, splits))
+        return predictions
+
+
+class IOUFovealGAT(FovealGAT):
+    def __init__(self,
+                 feat_extractor,
+                 encoder,
+                 gat_conv=CausalGATConv,
+                 residual_sequential=MarkovResidualSequential,
+                 gat_layers=8,
+                 output_gat_levels=None,
+                 residual_gat_levels=None,
+                 gat_att_heads=8,
+                 gat_conv_args={'channels': 256,
+                                'act_att': F.leaky_relu,
+                                'act_gat': F.elu,
+                                'norm': GraphNorm,
+                                'dropout': 0.1,
+                                'bias': True,
+                                'w_init_f': lambda w: nn.init.xavier_uniform_(w)},
+                 readout=CausalReadout,
+                 ro_hidden_features=[1024, 1024, 1024],
+                 out_channels = 1,
+                 ro_act=nn.GELU,
+                 ro_pred_act=nn.Identity,
+                 ro_dropout=0.0,
+                 ro_norm=nn.GroupNorm,
+                 ro_bias=True,
+                 ro_w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
+                 device='cpu'):
+        super().__init__(feat_extractor,
+                         encoder,
+                         gat_conv,
+                         residual_sequential,
+                         gat_layers,
+                         output_gat_levels,
+                         residual_gat_levels,
+                         gat_att_heads,
+                         gat_conv_args,
+                         readout,
+                         ro_hidden_features,
+                         out_channels,
+                         ro_act,
+                         ro_pred_act,
+                         ro_dropout,
+                         ro_norm,
+                         ro_bias,
+                         ro_w_init_f,
+                         device)
+    
+    def forward(self, x):
+        splits, fixations, patches, labels = x
+        fixations = fixations.to(self.device)
+        patches = patches.to(self.device)
+        labels = labels.to(self.device)
+
+        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+                
+        feats = self.feat_ext(patches)
+        encodings = self.encoder(splits, adjust_dim=True).to(self.device)
+
+        nodes = torch.cat([fixations, encodings, feats], 1).float()
+        nodes = nodes.squeeze(-1).squeeze(-1).permute((1, 0))
+        nodes = self.expand_dims(nodes)
+        
+        graphs = self.grapher((nodes, splits, fixations, bboxes))
         predictions = self.readout((graphs, splits))
         return predictions

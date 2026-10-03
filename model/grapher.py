@@ -69,18 +69,7 @@ class GazeGrapher(nn.Module):
         for i in range(layers):
             gat_conv_args['att_heads'] = att_heads[i]
             self.gats.add_conv('GAT_{}'.format(i - 1), **gat_conv_args)
-            
-        
-        #for i, args in enumerate([{k: gat_conv_args[k][i]
-        #                           for k in gat_conv_args
-        #                           if k != 'channels'}
-        #                          for i in range(1, len(gat_conv_args['channels']))],
-        #                         start=1):
-        #    args['in_channels'] = channels[i - 1]
-        #    args['out_channels'] = channels[i]
-        #    args['device'] = self.device
-        #    self.gats.add_conv('GAT_{}'.format(i - 1), **args)
-            
+                    
 
     def forward(self, x):
         nodes, splits, *args = x
@@ -235,8 +224,7 @@ class IOU_EuclideanTGazeGrapher(GazeGrapher):
                          device)
 
     def forward(self, x):
-        nodes, splits, fixations = x
-        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+        nodes, splits, fixations, bboxes = x
         xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
         xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
         bboxes_pairs = all_pairs(bboxes)
