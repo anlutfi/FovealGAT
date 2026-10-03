@@ -2,7 +2,7 @@ import torch
 import os
 import json
 
-from gaze_datasets.dataset_tools import identity
+from gaze_datasets.dataset_tools import identity, break_iterables
 from gaze_datasets.gaze_patch_dataset import GazePatchDataset
 
 
@@ -49,15 +49,16 @@ class ReflacxGazePatchDataset(GazePatchDataset):
 
         for i, fix in enumerate(fixations):
             fixations[i]['t'] = self.normalize_t(fix['t'])
-        
-        if self.target_fixation_keys is not None and self.target_fixation_keys != []:
-            fixations = torch.asarray([[f[k] for k in self.target_fixation_keys]
-                                       for f in fixations])
-        else:
-            fixations = torch.asarray([[f[k] for k in f]
-                                       for f in fixations])
-        fixations = fixations.unsqueeze(-1).unsqueeze(-1)
 
+        if self.target_fixation_keys is not None and self.target_fixation_keys != []:
+            l = [[f[k] for k in self.target_fixation_keys] for f in fixations]
+        else:
+            l = [[f[k] for k in f] for f in fixations]
+
+        fixations = [break_iterables(fs) for fs in l]
+        fixations = torch.asarray(fixations)
+        fixations = fixations.unsqueeze(-1).unsqueeze(-1)
+        
         label = self.labels[i]
 
         gaze_patches_dir = os.path.sep.join([self.gaze_patches_path,
