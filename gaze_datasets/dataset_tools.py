@@ -79,13 +79,16 @@ def break_iterables(l):
     [(result.append(x) if x.__class__ not in (tuple, list) else [result.append(y) for y in x]) for x in l]
     return result
 
+
 def delta_bb(u1, v1, u2, v2):
     d_u1v2 = torch.abs(u1 - v2)
     d_u2v1 = torch.abs(u2 - v1)
     return torch.min(torch.cat([d_u1v2, d_u2v1], dim=0), dim=0).values
 
+
 def area_bb(l, r, t, b):
     return (r - l) * (b - t)
+
 
 def get_bbox_iou_encodings(bboxes):
     l1, t1, r1, b1, l2, t2, r2, b2 = torch.split(bboxes, 1, dim=0)
