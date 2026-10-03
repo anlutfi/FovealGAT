@@ -68,7 +68,7 @@ class GazeGrapher(nn.Module):
         
         for i in range(layers):
             gat_conv_args['att_heads'] = att_heads[i]
-            self.gats.add_conv('GAT_{}'.format(i - 1), **gat_conv_args)
+            self.gats.add_conv('GAT_{}'.format(i), **gat_conv_args)
                     
 
     def forward(self, x):
