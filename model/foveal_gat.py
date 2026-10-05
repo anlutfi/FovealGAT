@@ -163,7 +163,8 @@ class IOUFovealGAT(FovealGAT):
         patches = patches.to(self.device)
         labels = labels.to(self.device)
 
-        fixations, bboxes = torch.split(fixations, (3, 4), dim=-1)
+        fixations, bboxes = torch.split(fixations, (3, 4), dim=1)
+        bboxes = bboxes.squeeze(-1).squeeze(-1).transpose(1, 0)
                 
         feats = self.feat_ext(patches)
         encodings = self.encoder(splits, adjust_dim=True).to(self.device)
