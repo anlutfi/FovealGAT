@@ -121,7 +121,7 @@ class CausalXYTGATConv(XYTGATConv):
         batch_idx = torch.cat([torch.ones(s, dtype=torch.int) * i
                                for i, s in enumerate(splits)]).to(self.device)
         nodes = torch.transpose(nodes, 1, 0)
-        nodes = self.norm(nodes, batch_idx.to(torch.long))
+        nodes = self.dropout(self.norm(nodes, batch_idx.to(torch.long)))
         nodes = torch.transpose(nodes, 1, 0)
         
         # generate adjacency matrix for whole batch
@@ -160,7 +160,7 @@ class CausalXYTGATConv(XYTGATConv):
         gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-        return self.dropout(self.act_gat(self.node_update(gatconv)))
+        return self.act_gat(self.node_update(gatconv))
 
 
 class CausalEuclideanTGATConv(CausalXYTGATConv):
@@ -245,7 +245,7 @@ class CausalSummaryXYTGATConv(XYTGATConv):
                                    for i, s in enumerate([s + 1 for s in splits])]).to(self.device)
                         
         nodes = torch.transpose(nodes, 1, 0)
-        nodes = self.norm(nodes, batch_idx.to(torch.long))
+        nodes = self.dropout(self.norm(nodes, batch_idx.to(torch.long)))
         nodes = torch.transpose(nodes, 1, 0)
 
         if not summary_node: 
@@ -303,7 +303,7 @@ class CausalSummaryXYTGATConv(XYTGATConv):
         gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-        return self.dropout(self.act_gat(self.node_update(gatconv)))
+        return self.act_gat(self.node_update(gatconv))
     
 
 class CausalEuclideanSummaryTGATConv(CausalSummaryXYTGATConv):
