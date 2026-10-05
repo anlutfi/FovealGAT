@@ -64,18 +64,20 @@ if __name__ == '__main__':
     from torch_geometric.nn.norm import GraphNorm
     import model.gat_conv as convs
     from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
+    from model.iou_xyt_gat_conv import CausalIOU_EuclideanTGATConv
     from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
         
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
-    grph_gat_conv = CausalEuclideanTGATConv
+    grph_gat_conv = CausalIOU_EuclideanTGATConv
     grph_res_seq = MarkovResidualSequential
     grph_layers = 8
-    grph_channels = 512
+    grph_channels = 384
     grph_residual_gat_levels = [False, True, True, True, True, True, True, True]
     grph_output_gat_levels = None
     grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]
     grph_xy_heads_ratio=0.2
     grph_t_heads_ratio=0.1
+    grph_iou_heads_ratio=0.2
     grph_act_att = F.leaky_relu
     grph_act_gat = F.elu
     grph_norm = GraphNorm
@@ -86,6 +88,7 @@ if __name__ == '__main__':
     gat_conv_args={'channels': grph_channels,
                    'xy_heads_ratio': grph_xy_heads_ratio,
                    't_heads_ratio': grph_t_heads_ratio,
+                   'iou_heads_ratio': grph_iou_heads_ratio,
                    'act_att': grph_act_att,
                    'act_gat': grph_act_gat,
                    'norm': grph_norm,
@@ -108,7 +111,7 @@ if __name__ == '__main__':
 
     from feature_extraction.extractors import GazePatchFeatureExtractor
     from node_encodings.sequence import GazeSinCosPosEncoding
-    from model.foveal_gat import FovealGAT
+    from model.foveal_gat import FovealGAT, IOUFovealGAT
     from gaze_datasets import reflacx
     from torch.utils.data import DataLoader
     from datetime import datetime
@@ -162,34 +165,35 @@ if __name__ == '__main__':
         
         feat_ext = GazePatchFeatureExtractor(fe_tail_feat_ext,
                                              args['pretrained_sd'],
-                                            fe_channels,
-                                            fe_act,
-                                            fe_norm,
-                                            fe_bias,
-                                            fe_w_init_f,
-                                            device)
-        model = FovealGAT(feat_ext,
-                            encoder,
-                            grph_gat_conv,
-                            grph_res_seq,
-                            grph_layers,
-                            grph_output_gat_levels,
-                            grph_residual_gat_levels,
-                            grph_att_heads,
-                            gat_conv_args,
-                            readout,
-                            ro_hidden_features,
-                            ro_out_channels,
-                            ro_hidden_act,
-                            ro_pred_act,
-                            ro_dropout,
-                            ro_norm,
-                            ro_bias,
-                            ro_w_init_f,
-                            device)
+                                             fe_channels,
+                                             fe_act,
+                                             fe_norm,
+                                             fe_bias,
+                                             fe_w_init_f,
+                                             device)
+        model = IOUFovealGAT(feat_ext,
+                          encoder,
+                          grph_gat_conv,
+                          grph_res_seq,
+                          grph_layers,
+                          grph_output_gat_levels,
+                          grph_residual_gat_levels,
+                          grph_att_heads,
+                          gat_conv_args,
+                          readout,
+                          ro_hidden_features,
+                          ro_out_channels,
+                          ro_hidden_act,
+                          ro_pred_act,
+                          ro_dropout,
+                          ro_norm,
+                          ro_bias,
+                          ro_w_init_f,
+                          device)
         
         dataset = reflacx.ReflacxGazePatchDataset(dataset_pth,
                                                   desired_label,
+                                                  target_fixation_keys=('x', 'y', 't', 'top_left', 'bottom_right'),
                                                   mode='train',
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
