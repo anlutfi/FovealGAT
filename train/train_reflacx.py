@@ -88,7 +88,7 @@ if __name__ == '__main__':
                    'dropout': grph_dropout,
                    'bias': grph_bias,
                    'w_init_f': grph_w_init_f}
-    if grph_iou_heads_ratio is not None:
+    if grph_iou_heads_ratio is not None and grph_iou_heads_ratio > 0:
         gat_conv_args['iou_heads_ratio'] = grph_iou_heads_ratio
         iou = True
     else:
