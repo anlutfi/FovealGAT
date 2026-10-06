@@ -49,7 +49,9 @@ F_acts = {'leaky_relu': nn.functional.leaky_relu,
          }
 
 winits = {'xavier': lambda w: nn.init.xavier_uniform_(w),
-          'kaiming': lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')}
+          'kaiming': lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
+          'kaiming_normal': lambda w: nn.init.kaiming_normal_(w, mode='fan_out', nonlinearity='relu'),
+         }
 
 transforms = {'RandomHorizontalFlip': T.RandomHorizontalFlip,
               'RandomRotation': T.RandomRotation,
