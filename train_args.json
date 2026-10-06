@@ -1,0 +1,11 @@
+{"sessions": 1,
+ "epochs": 100,
+ "lr": 3e-4,
+ "pretrained_lr": 1e-5,
+ "store_best_model": true,
+ "stored_model_pth": "/store/alutfi/dev/models/iou",
+ "loss": "bce_with_logits",
+ "optimizer": "adamw",
+ "dataset_pth": "/store/alutfi/dev/data/gaze_patch_datasets/reflacx/1_ang_res_256",
+ "pretrained_sd": "/store/alutfi/dev/GazeOnlyGAT/pretrained/pvig_ti_224_gelu.pt"
+}
