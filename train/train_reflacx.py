@@ -7,7 +7,7 @@ if __name__ == '__main__':
     from torch import nn
     import torchvision.transforms as T
 
-    from train_tools import get_loss, get_optim, choose_device
+    from train_tools import get_loss, get_optim, choose_device, ArgParser
 
     import torch
     
@@ -16,7 +16,10 @@ if __name__ == '__main__':
 
     desired_label = sys.argv[1]
     with open(sys.argv[2], 'r') as fp:
-        args = json.load(fp)
+        train_args = json.load(fp)
+    with open(sys.argv[3], 'r') as fp:
+        model_args = ArgParser(json.load(fp))
+        
 
     assert desired_label in ('Consolidation',
                             'Groundglass opacity',
@@ -25,93 +28,90 @@ if __name__ == '__main__':
                             'Pneumothorax',
                             'Enlarged cardiac silhouette')
 
-    sessions = args['sessions']
-    epochs = args['epochs']
-    lr = args['lr']
-    pretrained_lr = args['pretrained_lr'] if 'pretrained_lr' in args else None
-    store_best_model = args['store_best_model']
-    stored_model_pth = args['stored_model_pth']
+    sessions = train_args['sessions']
+    epochs = train_args['epochs']
+    lr = train_args['lr']
+    pretrained_lr = train_args['pretrained_lr'] if 'pretrained_lr' in train_args else None
+    store_best_model = train_args['store_best_model']
+    stored_model_pth = train_args['stored_model_pth']
 
-    criterion_clss = get_loss(args['loss'])
-    optimizer_clss = get_optim(args['optimizer'])
+    criterion_clss = get_loss(train_args['loss'])
+    optimizer_clss = get_optim(train_args['optimizer'])
 
-    dataset_pth = args['dataset_pth']
+    dataset_pth = train_args['dataset_pth']
 
-    train_val_test_split = [0.7, 0.2, 0.1]
-    transform = T.Compose([T.RandomHorizontalFlip(p=0.5),
-                           T.RandomRotation(degrees=7),
-                           T.ColorJitter(brightness=0.05, contrast=0.05)])
-    batch_size = 5
-    acc_steps = 8
-    dl_num_workers = 4
+    #dataloader
+    train_val_test_split = model_args('train_val_test_split')
+    transform = model_args('transform')
+    batch_size = model_args('batch_size')
+    acc_steps = model_args('acc_steps')
+    dl_num_workers = model_args('dl_num_workers')
 
-    #### feature extraction
-    from feature_extraction.pretrained import pyramid_feature_extractor
-    fe_tail_feat_ext = pyramid_feature_extractor
-    fe_channels = [48, 128, 128, 128, 128]
-    fe_act = nn.GELU
-    fe_norm = nn.BatchNorm2d
-    fe_bias = True
-    fe_w_init_f = lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')
-
+    #feature extractor
+    fe_tail_feat_ext = model_args('fe_tail_feat_ext')
+    fe_channels = model_args('fe_channels')
+    fe_act = model_args('fe_act')
+    fe_norm = model_args('fe_norm')
+    fe_bias = model_args('fe_bias')
+    fe_w_init_f = model_args('fe_w_init_f')
+    
     ##### node encodings
     from gaze_datasets.dataset_tools import max_fixation_sequence_len
     max_len = max_fixation_sequence_len(dataset_pth)
-    seq_encoding_feat_count = 16
-
-    #### Grapher
-    from torch.nn import functional as F
-    from torch_geometric.nn.norm import GraphNorm
-    import model.gat_conv as convs
-    from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
-    from model.iou_xyt_gat_conv import CausalIOU_EuclideanTGATConv
-    from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
-        
+    seq_encoding_feat_count = model_args('seq_encoding_feat_count')
+    
+    #### grapher
     in_channels = fe_channels[-1] + seq_encoding_feat_count + len(['x', 'y', 't'])
-    grph_gat_conv = CausalIOU_EuclideanTGATConv
-    grph_res_seq = MarkovResidualSequential
-    grph_layers = 8
-    grph_channels = 384
-    grph_residual_gat_levels = [False, True, True, True, True, True, True, True]
-    grph_output_gat_levels = None
-    grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]
-    grph_xy_heads_ratio=0.2
-    grph_t_heads_ratio=0.1
-    grph_iou_heads_ratio=0.2
-    grph_act_att = F.leaky_relu
-    grph_act_gat = F.elu
-    grph_norm = GraphNorm
-    grph_dropout = 0.3
-    grph_bias = True
-    grph_w_init_f = lambda w: nn.init.xavier_uniform_(w)
+    grph_gat_conv = model_args('grph_gat_conv')
+    grph_res_seq = model_args('grph_res_seq')
+    grph_layers = model_args('grph_layers')
+    grph_channels = model_args('grph_channels')
+    grph_residual_gat_levels = model_args('grph_residual_gat_levels')
+    grph_output_gat_levels = model_args('grph_output_gat_levels')
+    grph_att_heads = model_args('grph_att_heads')
+    grph_xy_heads_ratio = model_args('grph_xy_heads_ratio')
+    grph_t_heads_ratio = model_args('grph_t_heads_ratio')
+    grph_iou_heads_ratio = model_args('grph_iou_heads_ratio')
+    grph_act_att = model_args('grph_act_att')
+    grph_act_gat = model_args('grph_act_gat')
+    grph_norm = model_args('grph_norm')
+    grph_dropout = model_args('grph_dropout')
+    grph_bias = model_args('grph_bias')
+    grph_w_init_f = model_args('grph_w_init_f')
 
     gat_conv_args={'channels': grph_channels,
                    'xy_heads_ratio': grph_xy_heads_ratio,
                    't_heads_ratio': grph_t_heads_ratio,
-                   'iou_heads_ratio': grph_iou_heads_ratio,
                    'act_att': grph_act_att,
                    'act_gat': grph_act_gat,
                    'norm': grph_norm,
                    'dropout': grph_dropout,
                    'bias': grph_bias,
                    'w_init_f': grph_w_init_f}
+    if grph_iou_heads_ratio is not None:
+        gat_conv_args['iou_heads_ratio'] = grph_iou_heads_ratio
+        iou = True
+    else:
+        iou = False
+    
+    readout = model_args('readout')
+    ro_channels = model_args('ro_channels')
+    ro_out_channels = model_args('ro_out_channels')
+    ro_hidden_act = model_args('ro_hidden_act')
+    ro_pred_act = model_args('ro_pred_act')
+    ro_dropout = model_args('ro_dropout')
+    ro_norm = model_args('ro_norm')
+    ro_bias = model_args('ro_bias')
+    ro_w_init_f = model_args('ro_w_init_f')
 
-    #### Readout
-    import model.readout as readouts
-    readout = readouts.CausalReadout
-    ro_channels = [-1, 512, 256, 128, 64]
     ro_hidden_features = ro_channels[1:]
-    ro_out_channels = 1
-    ro_hidden_act = nn.GELU
-    ro_pred_act = nn.Identity
-    ro_dropout = 0.3
-    ro_norm = nn.GroupNorm
-    ro_bias = True
-    ro_w_init_f = lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu')
 
+    from model.foveal_gat import FovealGAT, IOUFovealGAT
+    foveal_gat = IOUFovealGAT if iou else FovealGAT
+        
+       
     from feature_extraction.extractors import GazePatchFeatureExtractor
     from node_encodings.sequence import GazeSinCosPosEncoding
-    from model.foveal_gat import FovealGAT, IOUFovealGAT
     from gaze_datasets import reflacx
     from torch.utils.data import DataLoader
     from datetime import datetime
@@ -164,36 +164,39 @@ if __name__ == '__main__':
                                                                               sessions))
         
         feat_ext = GazePatchFeatureExtractor(fe_tail_feat_ext,
-                                             args['pretrained_sd'],
+                                             train_args['pretrained_sd'],
                                              fe_channels,
                                              fe_act,
                                              fe_norm,
                                              fe_bias,
                                              fe_w_init_f,
                                              device)
-        model = IOUFovealGAT(feat_ext,
-                          encoder,
-                          grph_gat_conv,
-                          grph_res_seq,
-                          grph_layers,
-                          grph_output_gat_levels,
-                          grph_residual_gat_levels,
-                          grph_att_heads,
-                          gat_conv_args,
-                          readout,
-                          ro_hidden_features,
-                          ro_out_channels,
-                          ro_hidden_act,
-                          ro_pred_act,
-                          ro_dropout,
-                          ro_norm,
-                          ro_bias,
-                          ro_w_init_f,
-                          device)
+        model = foveal_gat(feat_ext,
+                           encoder,
+                           grph_gat_conv,
+                           grph_res_seq,
+                           grph_layers,
+                           grph_output_gat_levels,
+                           grph_residual_gat_levels,
+                           grph_att_heads,
+                           gat_conv_args,
+                           readout,
+                           ro_hidden_features,
+                           ro_out_channels,
+                           ro_hidden_act,
+                           ro_pred_act,
+                           ro_dropout,
+                           ro_norm,
+                           ro_bias,
+                           ro_w_init_f,
+                           device)
         
+        tfks = (('x', 'y', 't', 'top_left', 'bottom_right')
+                if iou
+                else ('x', 'y', 't'))
         dataset = reflacx.ReflacxGazePatchDataset(dataset_pth,
                                                   desired_label,
-                                                  target_fixation_keys=('x', 'y', 't', 'top_left', 'bottom_right'),
+                                                  target_fixation_keys=tfks,
                                                   mode='train',
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
