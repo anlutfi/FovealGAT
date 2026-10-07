@@ -156,3 +156,5 @@ class CausalIOU_EuclideanTGATConv(CausalIOU_XYTGATConv):
                                    1,
                                    device=device,
                                    bias=bias)
+        self.xy_scores.apply(lambda m: init_weights(m, w_init_f))
+                

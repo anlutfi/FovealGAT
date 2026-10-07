@@ -89,7 +89,7 @@ class GATConv(nn.Module):
         gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
         gatconv = torch.cat(gatconv, -1)
         gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-        return self.dropout(self.act_gat(self.node_update(gatconv)))
+        return self.act_gat(self.node_update(gatconv))
         
     
     
