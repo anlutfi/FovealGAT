@@ -66,6 +66,11 @@ class IOU_XYTGATConv(XYTGATConv):
         spatial_raw_scores = self.get_raw_scores(self.xy_scores, spatial_mats)
         t_raw_scores = self.get_raw_scores(self.t_scores, t_mats)
         iou_raw_scores = self.get_raw_scores(self.iou_scores, iou_mats)
+
+        #mask 0 iou values to -inf
+        iou_raw_scores = torch.where(iou_raw_scores == 0.0,
+                                     torch.tensor(float('-inf'), device=self.device),
+                                     iou_raw_scores)
         
         raw_scores = [torch.cat((sem, xy, t, iou), dim=0)
                       for sem, xy, t, iou in zip(sem_raw_scores,
