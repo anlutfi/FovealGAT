@@ -44,7 +44,7 @@ class IOU_XYTGATConv(nn.Module):
                                     device=device,
                                     bias=bias)
 
-        xy_heads = max(1, floor((att_heads * xy_heads_ratio) + 0.5))
+        xy_heads = max(1, floor((att_heads * xy_heads_ratio) + 0.5))#TODO this math is wrong its ceil withou the +0.5
         self.xy_scores = nn.Conv2d(4,# x1,y1,x2,y2
                                    xy_heads,
                                    1,
