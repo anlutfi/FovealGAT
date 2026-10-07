@@ -18,7 +18,8 @@ if __name__ == '__main__':
     with open(sys.argv[2], 'r') as fp:
         train_args = json.load(fp)
     with open(sys.argv[3], 'r') as fp:
-        model_args = ArgParser(json.load(fp))
+        model_args_d = json.load(fp)
+        model_args = ArgParser(model_args_d)
         
 
     assert desired_label in ('Consolidation',
@@ -122,6 +123,8 @@ if __name__ == '__main__':
                               optimizer,
                               val_loss,
                               args_dump,
+                              train_args,
+                              model_args_d,
                               output_pth_head,
                               session_dir,
                               best=False):
@@ -129,7 +132,9 @@ if __name__ == '__main__':
                       'model': model.state_dict(),
                       'optimizer': optimizer.state_dict(),
                       'val_loss': val_loss,
-                      'args_dump': args_dump}
+                      'script_dump': args_dump,
+                      'train_args': train_args,
+                      'model_args': model_args_d}
         
         
         mname = '_'.join(['best' if best else 'last', output_pth_head])
@@ -300,6 +305,8 @@ if __name__ == '__main__':
                                                    optimizer,
                                                    avg_val_loss,
                                                    args_dump,
+                                                   train_args,
+                                                   model_args_d,
                                                    output_pth_head,
                                                    session_dir,
                                                    best=avg_val_loss < min_val_loss)
@@ -313,6 +320,8 @@ if __name__ == '__main__':
                                                        optimizer,
                                                        min_val_loss,
                                                        args_dump,
+                                                       train_args,
+                                                       model_args_d,
                                                        output_pth_head,
                                                        session_dir,
                                                        best=True)
