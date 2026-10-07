@@ -81,14 +81,17 @@ if __name__ == '__main__':
     grph_w_init_f = model_args('grph_w_init_f')
 
     gat_conv_args={'channels': grph_channels,
-                   'xy_heads_ratio': grph_xy_heads_ratio,
-                   't_heads_ratio': grph_t_heads_ratio,
                    'act_att': grph_act_att,
                    'act_gat': grph_act_gat,
                    'norm': grph_norm,
                    'dropout': grph_dropout,
                    'bias': grph_bias,
                    'w_init_f': grph_w_init_f}
+    if grph_xy_heads_ratio is not None:
+        gat_conv_args['xy_heads_ratio'] = grph_xy_heads_ratio
+    if grph_t_heads_ratio is not None:
+        gat_conv_args['t_heads_ratio'] = grph_t_heads_ratio
+        
     if grph_iou_heads_ratio is not None and grph_iou_heads_ratio > 0:
         gat_conv_args['iou_heads_ratio'] = grph_iou_heads_ratio
         iou = True
@@ -107,8 +110,7 @@ if __name__ == '__main__':
 
     ro_hidden_features = ro_channels[1:]
 
-    from model.foveal_gat import FovealGAT, IOUFovealGAT
-    foveal_gat = IOUFovealGAT if iou else FovealGAT
+    from model.foveal_gat import FovealGAT
         
        
     from feature_extraction.extractors import GazePatchFeatureExtractor
@@ -176,7 +178,7 @@ if __name__ == '__main__':
                                              fe_bias,
                                              fe_w_init_f,
                                              device)
-        model = foveal_gat(feat_ext,
+        model = FovealGAT(feat_ext,
                            encoder,
                            grph_gat_conv,
                            grph_res_seq,
