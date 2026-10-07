@@ -62,8 +62,6 @@ class CausalReadout(nn.Module):
 
     def forward(self, x):
         graphs, splits = x
-        if graphs[0].shape[-1] == sum(splits) + len(splits): #summary node present
-            splits = [s + 1 for s in splits]
         splits = [sum(splits[0:i + 1]) - 1 for i in range(len(splits))]
         sinks = torch.cat([graph[:, torch.tensor(splits, device=self.device)] for graph in graphs]).to(self.device)
         sinks = sinks.unsqueeze(0)
