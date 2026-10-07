@@ -39,7 +39,7 @@ class CausalReadout(nn.Module):
 
         self.mlp = nn.Sequential()
         
-
+        #TODO add normalization before anything else
         for i in range(1, len(channels)):
             self.mlp.add_module('fc{}'.format(i - 1), nn.Conv1d(channels[i - 1],
                                                                 channels[i],
