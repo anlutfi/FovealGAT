@@ -5,9 +5,9 @@ from torch_geometric.nn.norm import GraphNorm
 
 from feature_extraction.extractors import GazePatchFeatureExtractor
 from node_encodings.sequence import GazeSinCosPosEncoding
-from model.gat_conv import CausalGATConv
-from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
-from model.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
+from model.gat_convs.gat_conv import CausalGATConv
+from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
+from model.gat_convs.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
 from model.residual_sequential import MarkovResidualSequential
 from model.readout import CausalReadout
 from model.grapher import GazeGrapher, XYTGazeGrapher, EuclideanTGazeGrapher, IOU_XYTGazeGrapher ,IOU_EuclideanTGazeGrapher

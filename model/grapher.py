@@ -5,9 +5,9 @@ import torch.nn.functional as F
 import copy
 
 from model.tools import adjust_arg_to_len
-from model.gat_conv import CausalGATConv
-from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
-from model.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
+from model.gat_convs.gat_conv import CausalGATConv
+from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
+from model.gat_convs.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
 from model.residual_sequential import MarkovResidualSequential
 from gaze_datasets.dataset_tools import all_pairs, get_xyt_pair_matrices, get_euclidean_encodings, get_bbox_iou_encodings
 
