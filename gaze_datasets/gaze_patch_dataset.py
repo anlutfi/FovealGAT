@@ -26,7 +26,7 @@ class GazePatchDataset(Dataset):
     def __init__(self,
                  dataset_path,
                  target_label,
-                 target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
+                 target_fixation_keys=('t', 'x', 'y'),
                  mode='train',
                  train_val_test_split=1.0,
                  transform=identity,
