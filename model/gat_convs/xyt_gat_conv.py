@@ -65,8 +65,8 @@ class XYTGATConv(GATConv):
         subnodes, adjs = self.get_subnodes_adjs(nodes, splits)
 
         sem_raw_scores = self.get_raw_scores(self.att_scores, adjs)
-        spatial_raw_scores = self.get_raw_scores(self.att_scores, spatial_mats)
-        t_raw_scores = self.get_raw_scores(self.att_scores, t_mats)
+        spatial_raw_scores = self.get_raw_scores(self.xy_scores, spatial_mats)
+        t_raw_scores = self.get_raw_scores(self.t_scores, t_mats)
 
         raw_scores = [torch.cat((sem, xy, t), dim=0)
                       for sem, xy, t in zip(sem_raw_scores,
