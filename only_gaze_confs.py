@@ -93,6 +93,7 @@ grph_output_gat_levels = None
 grph_att_heads = [16, 8, 8, 8, 8, 8, 8, 8]
 grph_xy_heads_ratio=0.2
 grph_t_heads_ratio=0.1
+grph_iou_heads_ratio=0.2
 grph_act_att = F.leaky_relu
 grph_act_gat = F.elu
 grph_norm = GraphNorm
