@@ -67,7 +67,3 @@ class CausalReadout(nn.Module):
         sinks = sinks.unsqueeze(0)
         predictions = self.mlp(sinks).squeeze(0).squeeze(0)
         return self.act(predictions)
-
-
-        
-
