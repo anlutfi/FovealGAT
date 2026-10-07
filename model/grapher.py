@@ -1,4 +1,3 @@
-import torch
 from torch import nn
 from torch_geometric.nn.norm import GraphNorm
 import torch.nn.functional as F
@@ -6,8 +5,8 @@ import copy
 
 from model.tools import adjust_arg_to_len
 from model.gat_convs.gat_conv import CausalGATConv
-from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
-from model.gat_convs.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
+from model.gat_convs.xyt_gat_conv import XYTGATConv, CausalXYTGATConv, CausalEuclideanTGATConv
+from model.gat_convs.iou_xyt_gat_conv import IOU_XYTGATConv, CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv
 from model.residual_sequential import MarkovResidualSequential
 from gaze_datasets.dataset_tools import all_pairs, get_xyt_pair_matrices, get_euclidean_encodings, get_bbox_iou_encodings
 
@@ -80,8 +79,8 @@ class GazeGrapher(nn.Module):
 
 
 class XYTGazeGrapher(GazeGrapher):
-    gat_convs = [CausalXYTGATConv.__name__,
-                 CausalSummaryXYTGATConv.__name__]
+    gat_convs = [XYTGATConv.__name__,
+                 CausalXYTGATConv.__name__]
     def __init__(self,
                  gat_conv=CausalXYTGATConv,
                  residual_sequential=MarkovResidualSequential,
@@ -111,14 +110,13 @@ class XYTGazeGrapher(GazeGrapher):
 
     def forward(self, x):
         nodes, splits, fixations = x
-        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
-        graphs = self.gats((nodes, splits, xy_mats, t_mats))
+        spatial_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        graphs = self.gats((nodes, splits, spatial_mats, t_mats))
         return graphs
 
 
 class EuclideanTGazeGrapher(GazeGrapher):
-    gat_convs = [CausalEuclideanTGATConv.__name__,
-                 CausalEuclideanSummaryTGATConv.__name__]
+    gat_convs = [CausalEuclideanTGATConv.__name__]
     def __init__(self,
                  gat_conv=CausalEuclideanTGATConv,
                  residual_sequential=MarkovResidualSequential,
@@ -148,15 +146,14 @@ class EuclideanTGazeGrapher(GazeGrapher):
 
     def forward(self, x):
         nodes, splits, fixations = x
-        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
-        xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
-        graphs = self.gats((nodes, splits, xy_mats, t_mats))
+        spatial_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        spatial_mats = [get_euclidean_encodings(xym) for xym in spatial_mats]
+        graphs = self.gats((nodes, splits, spatial_mats, t_mats))
         return graphs
 
 
 class IOU_XYTGazeGrapher(GazeGrapher):
-    gat_convs = [CausalIOU_XYTGATConv.__name__,
-                 CausalSummaryIOU_XYTGATConv.__name__]
+    gat_convs = [CausalIOU_XYTGATConv.__name__]
     def __init__(self,
                  gat_conv=CausalIOU_XYTGATConv,
                  residual_sequential=MarkovResidualSequential,
@@ -187,15 +184,14 @@ class IOU_XYTGazeGrapher(GazeGrapher):
 
     def forward(self, x):
         nodes, splits, fixations, bboxes = x
-        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        spatial_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
         iou_mats = get_bbox_iou_encodings(bboxes, splits)
-        graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
+        graphs = self.gats((nodes, splits, spatial_mats, t_mats, iou_mats))
         return graphs
 
 
 class IOU_EuclideanTGazeGrapher(GazeGrapher):
-    gat_convs = [CausalIOU_EuclideanTGATConv.__name__,
-                 CausalEuclideanSummaryIOU_TGATConv.__name__]
+    gat_convs = [CausalIOU_EuclideanTGATConv.__name__]
     def __init__(self,
                  gat_conv=CausalIOU_EuclideanTGATConv,
                  residual_sequential=MarkovResidualSequential,
@@ -226,8 +222,8 @@ class IOU_EuclideanTGazeGrapher(GazeGrapher):
 
     def forward(self, x):
         nodes, splits, fixations, bboxes = x
-        xy_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
-        xy_mats = [get_euclidean_encodings(xym) for xym in xy_mats]
+        spatial_mats, t_mats = get_xyt_pair_matrices(fixations, splits)
+        spatial_mats = [get_euclidean_encodings(xym) for xym in spatial_mats]
         iou_mats = get_bbox_iou_encodings(bboxes, splits)
-        graphs = self.gats((nodes, splits, xy_mats, t_mats, iou_mats))
+        graphs = self.gats((nodes, splits, spatial_mats, t_mats, iou_mats))
         return graphs
