@@ -6,9 +6,9 @@ from torch_geometric.nn.norm import GraphNorm
 import torchvision.transforms as T
 from feature_extraction.pretrained import pyramid_feature_extractor
 
-import model.gat_convs.gat_conv as convs
+from model.gat_convs.gat_conv import CausalGATConv
 from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
-from model.gat_convs.iou_xyt_gat_conv import CausalIOU_EuclideanTGATConv
+from model.gat_convs.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv
 from model.residual_sequential import MarkovResidualSequential, DenseResidualSequential
 import model.readout as readouts
 
@@ -61,7 +61,9 @@ feat_exts = {'pyramid_feature_extractor': pyramid_feature_extractor}
 
 gat_convs = {'CausalXYTGATConv': CausalXYTGATConv,
              'CausalEuclideanTGATConv': CausalEuclideanTGATConv,
-             'CausalIOU_EuclideanTGATConv': CausalIOU_EuclideanTGATConv}
+             'CausalIOU_EuclideanTGATConv': CausalIOU_EuclideanTGATConv,
+             'CausalGATConv': CausalGATConv,
+             'CausalIOU_XYTGATConv': CausalIOU_XYTGATConv}
 
 res_seqs = {'MarkovResidualSequential': MarkovResidualSequential,
             'DenseResidualSequential': DenseResidualSequential}
