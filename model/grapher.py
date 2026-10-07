@@ -2,8 +2,9 @@ import torch
 from torch import nn
 from torch_geometric.nn.norm import GraphNorm
 import torch.nn.functional as F
+import copy
 
-from model.tools import adjust_args_to_len
+from model.tools import adjust_arg_to_len
 from model.gat_conv import CausalGATConv
 from model.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv, CausalSummaryXYTGATConv, CausalEuclideanSummaryTGATConv
 from model.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv, CausalSummaryIOU_XYTGATConv, CausalEuclideanSummaryIOU_TGATConv
@@ -35,7 +36,8 @@ class GazeGrapher(nn.Module):
         param:act_gat activation function for the node update of each convolution layer. if a single value, it will be replicated for all
         """
         
-        att_heads = adjust_args_to_len(layers, att_heads)[0]
+        att_heads = adjust_arg_to_len(layers, att_heads)
+        gat_conv_args = copy.deepcopy(gat_conv_args)
         channels = gat_conv_args.pop('channels')
         gat_conv_args['in_channels'] = channels
         gat_conv_args['out_channels'] = channels
