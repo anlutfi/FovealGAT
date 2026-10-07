@@ -113,53 +113,7 @@ class CausalXYTGATConv(XYTGATConv):
     """A GATConv layer for a causal graph,
     where each node sees only itself and their predecessors
     """
-    #def forward(self, x):
-    #    nodes, splits, xy_mats, t_mats = x
-    #    # normalize graph
-    #    batch_idx = torch.cat([torch.ones(s, dtype=torch.int) * i
-    #                           for i, s in enumerate(splits)]).to(self.device)
-    #    nodes = torch.transpose(nodes, 1, 0)
-    #    nodes = self.dropout(self.norm(nodes, batch_idx.to(torch.long)))
-    #    nodes = torch.transpose(nodes, 1, 0)
-    #    
-    #    # generate adjacency matrix for whole batch
-    #    subnodes = torch.split(nodes, splits, dim=1)
-    #    adjs = [XYTGATConv.adj_mat(ns) for ns in subnodes]
-#
-    #    # generate raw semantic scores
-    #    sem_raw_scores = [self.act_att(self.att_scores(adj)) for adj in adjs]
-    #    
-    #    # generate raw XY scores
-    #    xy_raw_scores = [self.act_att(self.xy_scores(xy_mat)) for xy_mat in xy_mats]
-#
-    #    # generate raw T scores
-    #    t_raw_scores = [self.act_att(self.t_scores(t_mat)) for t_mat in t_mats]
-    #    
-    #    rawscores = [torch.cat((sem, xy, t), dim=0)
-    #                 for sem, xy, t in zip(sem_raw_scores,
-    #                                       xy_raw_scores,
-    #                                       t_raw_scores)]        
-#
-    #    # set upper triangle to zero, so a node doesn't see future nodes
-    #    adj_mask = [torch.tril(torch.ones(rs.shape,
-    #                            dtype=torch.bool,
-    #                            device=self.device))
-    #                for rs in rawscores]
-    #    masked_scores = [torch.where(am,
-    #                                 rs,
-    #                                 torch.tensor(float('-inf'),
-    #                                 device=self.device))
-    #                     for am, rs in zip(adj_mask, rawscores)]
-#
-    #    # generate final att weights
-    #    att_ws = [F.softmax(ms, dim=-1) for ms in masked_scores]
-#
-    #    # pass messages and generate output nodes
-    #    gatconv = [torch.matmul(sn, s) for sn, s in zip(subnodes, att_ws)]
-    #    gatconv = torch.cat(gatconv, -1)
-    #    gatconv = gatconv.reshape((gatconv.shape[0] * gatconv.shape[1], gatconv.shape[2]))
-    #    return self.act_gat(self.node_update(gatconv))
-
+    
 
 class CausalEuclideanTGATConv(CausalXYTGATConv):
     """A GATConv layer for a causal graph,
