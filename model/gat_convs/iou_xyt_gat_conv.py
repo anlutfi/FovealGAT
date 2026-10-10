@@ -22,6 +22,8 @@ class IOU_XYTGATConv(XYTGATConv):
                  dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
+                 self_edges=True,
+                 mask_out_zeros=False,
                  device='cpu'):
         """A Graph Attention Convolution Layer
         param:act_att activation function for the attention scores
@@ -39,6 +41,8 @@ class IOU_XYTGATConv(XYTGATConv):
                          bias,
                          w_init_f,
                          device)
+        self.self_edges = self_edges
+        self.mask_out_zeros = mask_out_zeros
         iou_heads = max(1, ceil(att_heads * iou_heads_ratio))
         self.iou_scores = nn.Conv2d(1,# ious
                                     iou_heads,
@@ -66,6 +70,15 @@ class IOU_XYTGATConv(XYTGATConv):
         spatial_raw_scores = self.get_raw_scores(self.xy_scores, spatial_mats)
         t_raw_scores = self.get_raw_scores(self.t_scores, t_mats)
         iou_raw_scores = self.get_raw_scores(self.iou_scores, iou_mats)
+
+        if not self.self_edges:
+            iou_raw_scores = torch.where(torch.eye(iou_raw_scores.shape[-1]) == 1.0,
+                                         torch.tensor(float('-inf')).to(self.device),
+                                         iou_raw_scores)
+        if self.mask_out_zeros:
+            iou_raw_scores = torch.where(iou_raw_scores == 0.0,
+                                         torch.tensor(float('-inf')).to(self.device),
+                                         iou_raw_scores)
 
         raw_scores = [torch.cat((sem, xy, t, iou), dim=0)
                       for sem, xy, t, iou in zip(sem_raw_scores,
@@ -98,6 +111,8 @@ class CausalIOU_XYTGATConv(IOU_XYTGATConv):
                  dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
+                 self_edges=True,
+                 mask_out_zeros=False,
                  device='cpu'):
         super().__init__(in_channels,
                          out_channels,
@@ -111,6 +126,8 @@ class CausalIOU_XYTGATConv(IOU_XYTGATConv):
                          dropout,
                          bias,
                          w_init_f,
+                         self_edges,
+                         mask_out_zeros,
                          device)
         self.causal = True
     """A GATConv layer for a causal graph,
@@ -135,6 +152,8 @@ class CausalIOU_EuclideanTGATConv(CausalIOU_XYTGATConv):
                  dropout=0.1,
                  bias=True,
                  w_init_f=lambda w: nn.init.xavier_uniform_(w),
+                 self_edges=True,
+                 mask_out_zeros=False,
                  device='cpu'):
         super().__init__(in_channels,
                          out_channels,
@@ -148,6 +167,8 @@ class CausalIOU_EuclideanTGATConv(CausalIOU_XYTGATConv):
                          dropout,
                          bias,
                          w_init_f,
+                         self_edges,
+                         mask_out_zeros,
                          device)
 
         xy_heads = self.xy_scores.out_channels
