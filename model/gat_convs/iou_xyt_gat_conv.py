@@ -73,13 +73,15 @@ class IOU_XYTGATConv(XYTGATConv):
         iou_raw_scores = self.get_raw_scores(self.iou_scores, iou_mats)
 
         if not self.self_edges:
-            iou_raw_scores = torch.where(torch.eye(iou_raw_scores.shape[-1]) == 1.0,
-                                         torch.tensor(float('-inf')).to(self.device),
-                                         iou_raw_scores)
+            iou_raw_scores = [torch.where(torch.eye(iou_rs.shape[-1]).to(self.device) == 1.0,
+                                          torch.tensor(float('-inf')).to(self.device),
+                                          iou_rs)
+                              for iou_rs in iou_raw_scores]
         if self.mask_out_zeros:
-            iou_raw_scores = torch.where(iou_raw_scores == 0.0,
-                                         torch.tensor(float('-inf')).to(self.device),
-                                         iou_raw_scores)
+            iou_raw_scores = [torch.where(iou_rs == 0.0,
+                                          torch.tensor(float('-inf')).to(self.device),
+                                          iou_rs)
+                              for iou_rs in iou_raw_scores]
 
         raw_scores = [torch.cat((sem, xy, t, iou), dim=0)
                       for sem, xy, t, iou in zip(sem_raw_scores,
