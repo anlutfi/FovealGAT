@@ -9,6 +9,8 @@ from model.tools import init_weights
 from model.gat_convs.xyt_gat_conv import XYTGATConv
 
 class IOU_XYTGATConv(XYTGATConv):
+    self_edge_eps = -1e20
+    
     def __init__(self,
                  in_channels,
                  out_channels,
@@ -78,16 +80,25 @@ class IOU_XYTGATConv(XYTGATConv):
                                           iou_rs)
                               for iou_rs in iou_raw_scores]
         if self.mask_out_zeros:
-            iou_raw_scores = [torch.where(iou_rs == 0.0,
+            iou_raw_scores = [torch.where(iou_mat == 0.0,
                                           torch.tensor(float('-inf')).to(self.device),
                                           iou_rs)
-                              for iou_rs in iou_raw_scores]
+                              for iou_rs, iou_mat in zip(iou_raw_scores, iou_mats)]
 
-        raw_scores = [torch.cat((sem, xy, t, iou), dim=0)
-                      for sem, xy, t, iou in zip(sem_raw_scores,
-                                                 spatial_raw_scores,
-                                                 t_raw_scores,
-                                                 iou_raw_scores)]        
+        iou_raw_scores = (self.get_causal_scores(iou_raw_scores)
+                          if self.causal
+                          else iou_raw_scores)
+
+        iou_scores = [F.softmax(iours, dim=-1) for iours in iou_raw_scores]
+        iou_ws = [torch.where(torch.isnan(ious),
+                              torch.tensor(0.0).to(self.device),
+                              ious)
+                  for ious in iou_scores]
+
+        raw_scores = [torch.cat((sem, xy, t), dim=0)
+                      for sem, xy, t in zip(sem_raw_scores,
+                                            spatial_raw_scores,
+                                            t_raw_scores)]        
 
         scores = (self.get_causal_scores(raw_scores)
                   if self.causal
@@ -95,6 +106,8 @@ class IOU_XYTGATConv(XYTGATConv):
 
         # generate final att weights
         att_ws = [F.softmax(ms, dim=-1) for ms in scores]
+        att_ws = [torch.cat((attw, iouw), dim=0)
+                  for attw, iouw in zip(att_ws, iou_ws)]
 
         return self.convolve(subnodes, att_ws)
 
