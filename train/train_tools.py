@@ -121,6 +121,8 @@ class ArgParser:
                      'grph_xy_heads_ratio',
                      'grph_t_heads_ratio',
                      'grph_iou_heads_ratio',
+                     'grph_self_edges',
+                     'grph_mask_out_zeros',
                      'grph_dropout',
                      'grph_bias',
                      'ro_channels',

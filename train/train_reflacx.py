@@ -73,6 +73,8 @@ if __name__ == '__main__':
     grph_xy_heads_ratio = model_args('grph_xy_heads_ratio')
     grph_t_heads_ratio = model_args('grph_t_heads_ratio')
     grph_iou_heads_ratio = model_args('grph_iou_heads_ratio')
+    grph_self_edges = model_args("grph_self_edges")
+    grph_mask_out_zeros = model_args("grph_mask_out_zeros")
     grph_act_att = model_args('grph_act_att')
     grph_act_gat = model_args('grph_act_gat')
     grph_norm = model_args('grph_norm')
@@ -94,6 +96,8 @@ if __name__ == '__main__':
         
     if grph_iou_heads_ratio is not None and grph_iou_heads_ratio > 0:
         gat_conv_args['iou_heads_ratio'] = grph_iou_heads_ratio
+        gat_conv_args['self_edges'] = grph_self_edges
+        gat_conv_args['mask_out_zeros'] = grph_mask_out_zeros
         iou = True
     else:
         iou = False
