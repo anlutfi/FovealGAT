@@ -353,7 +353,11 @@ if __name__ == '__main__':
             stats['epoch_val'][epoch] = {'total_loss': running_loss,
                                          'avg_loss': running_loss / sample_count}
             print()
-            scheduler.step()
+            if scheduler is None:
+                print('no lr scheduler found. continuing...')
+            else:
+                print('adjusting lr...')
+                scheduler.step()
 
         # TEST for current session (model with best val losses during training)
         best_checkpoint = torch.load(best_mpath)
