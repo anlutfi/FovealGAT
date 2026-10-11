@@ -31,7 +31,7 @@ optims = {"sgd": optim.SGD,
           "asgd": optim.ASGD,
           "rprop": optim.Rprop}
 
-schedulers = {"CosineAnnealingWarmRestarts": optim.lr_scheduler.CosineAnnealingWarmRestarts}
+schedulers = {"cosineannealingwarmrestarts": optim.lr_scheduler.CosineAnnealingWarmRestarts}
 
 acts = {'relu': nn.ReLU,
         'gelu': nn.GELU,
