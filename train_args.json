@@ -2,10 +2,14 @@
  "epochs": 100,
  "lr": 3e-4,
  "pretrained_lr": 1e-5,
+ "weight_decay": 0.0,
  "store_best_model": true,
  "stored_model_pth": "/store/alutfi/dev/models/iou",
  "loss": "bce_with_logits",
  "optimizer": "adamw",
+ "scheduler": "CosineAnnealingWarmRestarts",
+ "epoch_lr_restart": 40,
+ "lr_min": 1e-6,
  "dataset_pth": "/store/alutfi/dev/data/gaze_patch_datasets/reflacx/1_ang_res_256",
  "pretrained_sd": "/store/alutfi/dev/GazeOnlyGAT/pretrained/pvig_ti_224_gelu.pt"
 }

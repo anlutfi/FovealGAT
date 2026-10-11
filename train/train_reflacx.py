@@ -7,7 +7,7 @@ if __name__ == '__main__':
     from torch import nn
     import torchvision.transforms as T
 
-    from train_tools import get_loss, get_optim, choose_device, ArgParser
+    from train_tools import get_loss, get_optim, get_sched, choose_device, ArgParser
 
     import torch
     
@@ -33,11 +33,20 @@ if __name__ == '__main__':
     epochs = train_args['epochs']
     lr = train_args['lr']
     pretrained_lr = train_args['pretrained_lr'] if 'pretrained_lr' in train_args else None
+    weight_decay = train_args['weight_decay'] if 'weight_decay' in train_args else 0.0
     store_best_model = train_args['store_best_model']
     stored_model_pth = train_args['stored_model_pth']
 
     criterion_clss = get_loss(train_args['loss'])
     optimizer_clss = get_optim(train_args['optimizer'])
+    scheduler_clss = get_sched(train_args['scheduler'])
+
+    if scheduler_clss is not None:
+        epoch_lr_restart = train_args['epoch_lr_restart']
+        lr_min = train_args['lr_min']
+    else:
+        epoch_lr_restart = None
+        lr_min = None
 
     dataset_pth = train_args['dataset_pth']
 
@@ -219,9 +228,17 @@ if __name__ == '__main__':
                                         'lr': lr},
                                         {'params': [p for n, p in model.named_parameters()
                                                     if 'feat_ext.tail' in n],
-                                        'lr': pretrained_lr}])
+                                        'lr': pretrained_lr}],
+                                       weight_decay=weight_decay)
         else:
-            optimizer = optimizer_clss(model.parameters(), lr=lr)
+            optimizer = optimizer_clss(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+        scheduler = None
+        if scheduler_clss is not None:
+            scheduler = scheduler_clss(optimizer,
+                                       T_0=epoch_lr_restart,
+                                       T_mult=1,
+                                       eta_min=lr_min)
 
         min_val_loss = torch.inf
         stats = {'train': [],
@@ -275,7 +292,7 @@ if __name__ == '__main__':
 
             stats['epoch_train'][epoch] = {'total_loss': running_loss,
                                            'avg_loss': running_loss / sample_count}
-            
+
             print('epoch: {}  total train loss: {}'.format(epoch + 1, running_loss))
             print('epoch: {}    avg train loss: {}'.format(epoch + 1, running_loss / sample_count))
 
@@ -336,6 +353,7 @@ if __name__ == '__main__':
             stats['epoch_val'][epoch] = {'total_loss': running_loss,
                                          'avg_loss': running_loss / sample_count}
             print()
+            scheduler.step()
 
         # TEST for current session (model with best val losses during training)
         best_checkpoint = torch.load(best_mpath)

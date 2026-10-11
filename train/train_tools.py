@@ -31,6 +31,8 @@ optims = {"sgd": optim.SGD,
           "asgd": optim.ASGD,
           "rprop": optim.Rprop}
 
+schedulers = {"CosineAnnealingWarmRestarts": optim.lr_scheduler.CosineAnnealingWarmRestarts}
+
 acts = {'relu': nn.ReLU,
         'gelu': nn.GELU,
         'leaky relu': nn.LeakyReLU,
@@ -73,11 +75,12 @@ ros = {'CausalReadout': readouts.CausalReadout}
 
 def get_obj(nm, obj_dict):
     nm = nm.lower().strip()
-    return obj_dict[nm]
+    return obj_dict[nm] if nm in obj_dict else None
 
 get_loss = lambda nm: get_obj(nm, losses)
 get_optim = lambda nm: get_obj(nm, optims)
 get_act = lambda nm: get_obj(nm, acts)
+get_sched = lambda nm: get_obj(nm, schedulers)
 
 
 def choose_device():
