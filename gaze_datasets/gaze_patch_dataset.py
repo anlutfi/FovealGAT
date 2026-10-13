@@ -28,6 +28,7 @@ class GazePatchDataset(Dataset):
                  target_label,
                  target_fixation_keys=('t', 'x', 'y'),
                  mode='train',
+                 gaze_noise=0.0,
                  train_val_test_split=1.0,
                  transform=identity,
                  min_max_duration_pth='./dataset_t_info.json'):
@@ -50,6 +51,7 @@ class GazePatchDataset(Dataset):
         self.labels_path = os.path.sep.join([dataset_path, 'labels'])
         self.target_label = target_label
         self.target_fixation_keys = target_fixation_keys
+        self.gaze_noise=gaze_noise
 
         assert train_val_test_split.__class__ in (float, int, list)
         if train_val_test_split.__class__ in(float, int):

@@ -49,6 +49,7 @@ if __name__ == '__main__':
         lr_min = None
 
     dataset_pth = train_args['dataset_pth']
+    gaze_noise = train_args['gaze_noise']
 
     #dataloader
     train_val_test_split = model_args('train_val_test_split')
@@ -218,6 +219,7 @@ if __name__ == '__main__':
                                                   desired_label,
                                                   target_fixation_keys=tfks,
                                                   mode='train',
+                                                  gaze_noise=gaze_noise,
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
 
