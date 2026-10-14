@@ -61,12 +61,12 @@ class ReflacxGazePatchDataset(GazePatchDataset):
         fixations = torch.asarray(fixations)
         
         if self.mode == GazePatchDataset.train and self.gaze_noise > 0.0:
-            ts, xs, ys = torch.split(fixations, 1, dim=-1)
+            ts, xs, ys, *tail = torch.split(fixations, 1, dim=-1)
             xs += torch.randn_like(xs) * self.gaze_noise
             ys += torch.randn_like(ys) * self.gaze_noise
             xs = torch.clamp(xs, 0.0, 1.0)
             ys = torch.clamp(ys, 0.0, 1.0)
-            fixations = torch.cat([ts, xs, ys], dim=1)
+            fixations = torch.cat([ts, xs, ys, *tail], dim=1)
                                     
         
         fixations = fixations.unsqueeze(-1).unsqueeze(-1)

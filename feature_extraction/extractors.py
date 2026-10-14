@@ -93,7 +93,9 @@ class GazePatchCoordConvFeatureExtractor(nn.Module):
 
 
     def add_spatial_info(self, patches, fixations):
-        broadcast_fs = torch.tile(fixations, (1, 1, patches.shape[-2], patches.shape[-1]))
+        ts, xs, ys, *_ = torch.split(fixations, 1, dim=1)
+        txys = torch.cat([ts, xs, ys], dim=1)
+        broadcast_fs = torch.tile(txys, (1, 1, patches.shape[-2], patches.shape[-1]))
         return torch.cat([patches, broadcast_fs], dim=1)
     
     
