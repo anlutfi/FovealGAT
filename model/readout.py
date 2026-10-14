@@ -131,6 +131,7 @@ class WeightedMeanReadout(nn.Module):
                                                             bias=bias[i],
                                                             device=device))
 
+        self.graph_att.apply(lambda m: init_weights(m, w_init_f))
         self.mlp.apply(lambda m: init_weights(m, w_init_f))
         
 
