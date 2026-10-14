@@ -10,7 +10,7 @@ class GazePatchFeatureExtractor(nn.Module):
     """
     def __init__(self,
                  tail_feat_ext=pyramid_feature_extractor,
-                 state_dict_pth='../pretrained/pvig_ti_224_gelu.pt',
+                 state_dict_pth='',
                  channels=[48, 128, 128, 128, 128],
                  act=nn.GELU,
                  norm=nn.BatchNorm2d,
@@ -24,7 +24,7 @@ class GazePatchFeatureExtractor(nn.Module):
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
         self.tail = tail_feat_ext(state_dict_pth, device=device)
-        if state_dict_pth is None or not os.path.exists(state_dict_pth):
+        if state_dict_pth is None or state_dict_pth == '' or not os.path.exists(state_dict_pth):
             self.tail.apply(lambda m: init_weights(m, w_init_f))
 
         self.head = nn.Sequential().to(device)
