@@ -74,7 +74,8 @@ gat_convs = {'CausalXYTGATConv': CausalXYTGATConv,
 res_seqs = {'MarkovResidualSequential': MarkovResidualSequential,
             'DenseResidualSequential': DenseResidualSequential}
 
-ros = {'CausalReadout': readouts.CausalReadout}
+ros = {'CausalReadout': readouts.CausalReadout,
+       'WeightedMeanReadout': readouts.WeightedMeanReadout}
 
 
 def get_obj(nm, obj_dict):
