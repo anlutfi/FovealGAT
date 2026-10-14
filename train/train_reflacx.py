@@ -20,6 +20,10 @@ if __name__ == '__main__':
     with open(sys.argv[3], 'r') as fp:
         model_args_d = json.load(fp)
         model_args = ArgParser(model_args_d)
+    if len(sys.argv) == 5:
+        saved_dataset_split = sys.argv[4]
+    else:
+        saved_dataset_split = None
         
 
     assert desired_label in ('Consolidation',
@@ -53,7 +57,7 @@ if __name__ == '__main__':
 
     #dataloader
     train_val_test_split = model_args('train_val_test_split')
-    saved_dataset_split = model_args('saved_dataset_split')
+    #saved_dataset_split = model_args('saved_dataset_split')
     transform = model_args('transform')
     batch_size = model_args('batch_size')
     acc_steps = model_args('acc_steps')
@@ -185,7 +189,7 @@ if __name__ == '__main__':
                                                                               session + 1,
                                                                               sessions))
         
-        if fe_tail_feat_ext is not None:
+        if fe_tail_feat_ext is not None and fe_tail_feat_ext != '':
             feat_ext = fe_feat_ext(fe_tail_feat_ext,
                                    train_args['pretrained_sd'],
                                    fe_channels,
@@ -195,12 +199,12 @@ if __name__ == '__main__':
                                    fe_w_init_f,
                                    device)
         else:
-            feat_ext = fe_feat_ext(fe_channels,
-                                   fe_act,
-                                   fe_norm,
-                                   fe_bias,
-                                   fe_w_init_f,
-                                   device)
+            feat_ext = fe_feat_ext(channels=fe_channels,
+                                   act=fe_act,
+                                   norm=fe_norm,
+                                   bias=fe_bias,
+                                   w_init_f=fe_w_init_f,
+                                   device=device)
 
         model = FovealGAT(feat_ext,
                           encoder,
@@ -235,8 +239,8 @@ if __name__ == '__main__':
 
         if saved_dataset_split is not None and saved_dataset_split != '':
             stats = torch.load(saved_dataset_split, map_location='cpu')
-            splits = stats['dataset_split']
-            dataset.load_splits_from_training(splits)
+            data_splits = stats['dataset_split']
+            dataset.load_splits_from_training(data_splits)
 
         criterion = criterion_clss()
         if pretrained_lr is not None:
