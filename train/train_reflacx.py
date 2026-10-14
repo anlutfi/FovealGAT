@@ -53,6 +53,7 @@ if __name__ == '__main__':
 
     #dataloader
     train_val_test_split = model_args('train_val_test_split')
+    saved_dataset_split = model_args('saved_dataset_split')
     transform = model_args('transform')
     batch_size = model_args('batch_size')
     acc_steps = model_args('acc_steps')
@@ -231,6 +232,11 @@ if __name__ == '__main__':
                                                   gaze_noise=gaze_noise,
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
+
+        if saved_dataset_split is not None and saved_dataset_split != '':
+            stats = torch.load(saved_dataset_split, map_location='cpu')
+            splits = stats['dataset_split']
+            dataset.load_splits_from_training(splits)
 
         criterion = criterion_clss()
         if pretrained_lr is not None:

@@ -114,6 +114,7 @@ f_maker = lambda d: lambda arg: d[arg]
 
 class ArgParser:
     identity_keys = ['train_val_test_split',
+                     'saved_dataset_split',
                      'batch_size',
                      'acc_steps',
                      'dl_num_workers',
