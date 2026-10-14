@@ -100,7 +100,11 @@ class FovealGAT(nn.Module):
             fixations, bboxes = torch.split(fixations, (3, 4), dim=1)
             bboxes = bboxes.squeeze(-1).squeeze(-1).transpose(1, 0)
 
-        feats = self.feat_ext(patches)
+        if 'CoordConv' in self.feat_ext.__class__.__name__: # TODO make this not shitty
+            feats = self.feat_ext((patches, fixations))
+        else:
+            feats = self.feat_ext(patches)
+
         encodings = self.encoder(splits, adjust_dim=True).to(self.device)
 
         nodes = torch.cat([fixations, encodings, feats], 1).float()

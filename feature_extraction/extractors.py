@@ -76,20 +76,20 @@ class GazePatchCoordConvFeatureExtractor(nn.Module):
         channels, act, norm, bias = adjust_args([channels, act, norm, bias])
         super(GazePatchCoordConvFeatureExtractor, self).__init__()
         self.device = device
-        self.convs = nn.Sequential().to(device)
+        self.head = nn.Sequential().to(device)
         for i in range(1, len(channels)):
-            self.convs.add_module('conv_{}'.format(i - 1),
+            self.head.add_module('conv_{}'.format(i - 1),
                                   nn.Conv2d(channels[i - 1],
                                             channels[i],
                                             (3, 3) if i < 7 else (2, 2),
                                             stride=2 if i <= 2 else 1,
                                             padding=1 if 1 <= i <= 3 else 0,
                                             bias=bias[i]).to(device))
-            self.convs.add_module('norm_{}'.format(i - 1),
+            self.head.add_module('norm_{}'.format(i - 1),
                                   norm[i](channels[i]).to(device)),
-            self.convs.add_module('act_{}'.format(i - 1),
+            self.head.add_module('act_{}'.format(i - 1),
                                   act[i]().to(device))
-        self.convs.apply(lambda m: init_weights(m, w_init_f))
+        self.head.apply(lambda m: init_weights(m, w_init_f))
 
 
     def add_spatial_info(self, patches, fixations):
@@ -102,4 +102,4 @@ class GazePatchCoordConvFeatureExtractor(nn.Module):
     def forward(self, x):
         patches, fixations = x
         geo_patches = self.add_spatial_info(patches, fixations)
-        return self.convs(geo_patches)
+        return self.head(geo_patches)
