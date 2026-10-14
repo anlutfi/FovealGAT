@@ -59,6 +59,7 @@ if __name__ == '__main__':
     dl_num_workers = model_args('dl_num_workers')
 
     #feature extractor
+    fe_feat_ext = model_args('fe_feat_ext')
     fe_tail_feat_ext = model_args('fe_tail_feat_ext')
     fe_channels = model_args('fe_channels')
     fe_act = model_args('fe_act')
@@ -127,7 +128,6 @@ if __name__ == '__main__':
     from model.foveal_gat import FovealGAT
         
        
-    from feature_extraction.extractors import GazePatchFeatureExtractor
     from node_encodings.sequence import GazeSinCosPosEncoding
     from gaze_datasets import reflacx
     from torch.utils.data import DataLoader
@@ -184,33 +184,42 @@ if __name__ == '__main__':
                                                                               session + 1,
                                                                               sessions))
         
-        feat_ext = GazePatchFeatureExtractor(fe_tail_feat_ext,
-                                             train_args['pretrained_sd'],
-                                             fe_channels,
-                                             fe_act,
-                                             fe_norm,
-                                             fe_bias,
-                                             fe_w_init_f,
-                                             device)
+        if fe_tail_feat_ext is not None:
+            feat_ext = fe_feat_ext(fe_tail_feat_ext,
+                                   train_args['pretrained_sd'],
+                                   fe_channels,
+                                   fe_act,
+                                   fe_norm,
+                                   fe_bias,
+                                   fe_w_init_f,
+                                   device)
+        else:
+            feat_ext = fe_feat_ext(fe_channels,
+                                   fe_act,
+                                   fe_norm,
+                                   fe_bias,
+                                   fe_w_init_f,
+                                   device)
+
         model = FovealGAT(feat_ext,
-                           encoder,
-                           grph_gat_conv,
-                           grph_res_seq,
-                           grph_layers,
-                           grph_output_gat_levels,
-                           grph_residual_gat_levels,
-                           grph_att_heads,
-                           gat_conv_args,
-                           readout,
-                           ro_hidden_features,
-                           ro_out_channels,
-                           ro_hidden_act,
-                           ro_pred_act,
-                           ro_dropout,
-                           ro_norm,
-                           ro_bias,
-                           ro_w_init_f,
-                           device)
+                          encoder,
+                          grph_gat_conv,
+                          grph_res_seq,
+                          grph_layers,
+                          grph_output_gat_levels,
+                          grph_residual_gat_levels,
+                          grph_att_heads,
+                          gat_conv_args,
+                          readout,
+                          ro_hidden_features,
+                          ro_out_channels,
+                          ro_hidden_act,
+                          ro_pred_act,
+                          ro_dropout,
+                          ro_norm,
+                          ro_bias,
+                          ro_w_init_f,
+                          device)
         
         tfks = (('x', 'y', 't', 'top_left', 'bottom_right')
                 if iou

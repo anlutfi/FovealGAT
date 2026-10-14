@@ -5,6 +5,7 @@ import pynvml
 from torch_geometric.nn.norm import GraphNorm
 import torchvision.transforms as T
 from feature_extraction.pretrained import pyramid_feature_extractor
+from feature_extraction.extractors import GazePatchFeatureExtractor, GazePatchCoordConvFeatureExtractor
 
 from model.gat_convs.gat_conv import CausalGATConv
 from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
@@ -59,7 +60,10 @@ transforms = {'RandomHorizontalFlip': T.RandomHorizontalFlip,
               'RandomRotation': T.RandomRotation,
               'ColorJitter': T.ColorJitter}
 
-feat_exts = {'pyramid_feature_extractor': pyramid_feature_extractor}
+tail_feat_exts = {'pyramid_feature_extractor': pyramid_feature_extractor}
+
+feat_exts = {'GazePatchFeatureExtractor': GazePatchFeatureExtractor,
+             'GazePatchCoordConvFeatureExtractor': GazePatchCoordConvFeatureExtractor}
 
 gat_convs = {'CausalXYTGATConv': CausalXYTGATConv,
              'CausalEuclideanTGATConv': CausalEuclideanTGATConv,
@@ -133,7 +137,8 @@ class ArgParser:
                      'ro_dropout',
                      'ro_bias']
     class_table = {"transform": lambda ts: T.Compose([transforms[t[0]](**t[1]) for t in ts]),
-                   "fe_tail_feat_ext": f_maker(feat_exts),
+                   "fe_feat_ext": f_maker(feat_exts),
+                   "fe_tail_feat_ext": f_maker(tail_feat_exts),
                    "fe_act": f_maker(acts),
                    "fe_norm": f_maker(norms),
                    "fe_w_init_f": f_maker(winits),
