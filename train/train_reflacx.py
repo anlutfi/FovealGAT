@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     criterion_clss = get_loss(train_args['loss'])
     optimizer_clss = get_optim(train_args['optimizer'])
-    scheduler_clss = get_sched(train_args['scheduler'])
+    scheduler_clss = get_sched(train_args['scheduler']) if 'scheduler' in train_args else None
 
     if scheduler_clss is not None:
         epoch_lr_restart = train_args['epoch_lr_restart']
@@ -53,7 +53,7 @@ if __name__ == '__main__':
         lr_min = None
 
     dataset_pth = train_args['dataset_pth']
-    gaze_noise = train_args['gaze_noise']
+    gaze_noise = train_args['gaze_noise'] if 'gaze_noise' in train_args else None
 
     #dataloader
     train_val_test_split = model_args('train_val_test_split')
@@ -177,6 +177,7 @@ if __name__ == '__main__':
     with open('./train/train_reflacx.py', 'r', encoding='utf-8') as fp:
         args_dump = fp.read()
     train_time = datetime.now().strftime("%Y%m%d_%H%M")
+    session_ds_splits = None
     for session in range(sessions):
         last_mpath = None
         best_mpath = None
@@ -237,7 +238,10 @@ if __name__ == '__main__':
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
 
-        if saved_dataset_split is not None and saved_dataset_split != '':
+        if session_ds_splits is not None:
+            dataset.load_splits_from_training(session_ds_splits)
+        
+        elif saved_dataset_split is not None and saved_dataset_split != '':
             stats = torch.load(saved_dataset_split, map_location='cpu')
             data_splits = stats['dataset_split']
             dataset.load_splits_from_training(data_splits)
@@ -392,6 +396,11 @@ if __name__ == '__main__':
         stats['dataset_split'] = {'train': dataset.train_idxs,
                                   'val': dataset.val_idxs,
                                   'test': dataset.test_idxs}
+
+        if session_ds_splits is None:
+            session_ds_splits = {'train': dataset.train_idxs,
+                                 'val': dataset.val_idxs,
+                                 'test': dataset.test_idxs}
         
         dataset.set_mode('test')
         loader = DataLoader(dataset,
