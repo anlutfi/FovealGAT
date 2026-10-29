@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Pneumothorax" "./train/train_args/ft2_e25_train.json" "./train/model_args/ft2_iou_model_lnlg.json"

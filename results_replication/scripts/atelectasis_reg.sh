@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Atelectasis" "./train/train_args/ft1_train.json" "./train/model_args/ft1_euc_model.json"
