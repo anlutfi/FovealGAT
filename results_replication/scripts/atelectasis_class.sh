@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Atelectasis" "./train/train_args/iou_nozeros_train_class.json" "train/model_args/iou_nozeros_model.json"

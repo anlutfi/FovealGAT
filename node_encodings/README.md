@@ -2,7 +2,7 @@
 
 
 ```python
-import only_gaze_confs as conf
+import fovealgat_confs as conf
 ```
 
 With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation (X, Y) position within the CXR and time duration.
@@ -34,6 +34,13 @@ max_len = max_fixation_sequence_len(gaze_dataset_pth)
 max_len
 ```
 
+
+
+
+    386
+
+
+
 Load sample data
 
 
@@ -48,6 +55,7 @@ fs, gsp, labels = ds[33]
 splits, fixations, patches, labels = gaze_patch_dataset_collate((ds[33], ds[34], ds[0]))
 
 feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
+                                     conf.fe_state_dict_pth,
                                      conf.fe_channels,
                                      conf.fe_act,
                                      conf.fe_norm,
@@ -71,15 +79,36 @@ splits, seqs.shape
 ```
 
 
+
+
+    ([47, 155, 53], torch.Size([255, 16, 1, 1]))
+
+
+
+
 ```python
 fixations = fixations.to(conf.device)
 fixations.shape
 ```
 
 
+
+
+    torch.Size([255, 3, 1, 1])
+
+
+
+
 ```python
 feats.shape
 ```
+
+
+
+
+    torch.Size([255, 128, 1, 1])
+
+
 
 inserting encodings into gaze patch feature vector effectively turns it into the graph nodes
 
@@ -88,3 +117,10 @@ inserting encodings into gaze patch feature vector effectively turns it into the
 nodes = torch.cat([fixations, seqs, feats], 1).float()
 nodes.shape, sum([x.shape[1]for x in (seqs, fixations, feats)])
 ```
+
+
+
+
+    (torch.Size([255, 147, 1, 1]), 147)
+
+

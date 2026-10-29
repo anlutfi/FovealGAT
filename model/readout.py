@@ -11,7 +11,7 @@ class CausalReadout(nn.Module):
                  act=nn.GELU,
                  pred_act=nn.Identity,
                  dropout=0.0,
-                 norm=nn.BatchNorm1d,
+                 norm=nn.GroupNorm,
                  bias=True,
                  w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
                  device='cpu'):
@@ -39,14 +39,15 @@ class CausalReadout(nn.Module):
 
         self.mlp = nn.Sequential()
         
-
         for i in range(1, len(channels)):
+            if i == 1:
+                self.mlp.add_module('norm_input', norm[i - 1](num_groups=1, num_channels=channels[0], device=device))
             self.mlp.add_module('fc{}'.format(i - 1), nn.Conv1d(channels[i - 1],
                                                                 channels[i],
                                                                 1,
                                                                 bias=bias[i - 1],
                                                                 device=device))
-            self.mlp.add_module('norm{}'.format(i), norm[i - 1](channels[i], device=device))
+            self.mlp.add_module('norm{}'.format(i), norm[i - 1](num_groups=1, num_channels=channels[i], device=device))
             self.mlp.add_module('act{}'.format(i), act[i - 1]())
             self.mlp.add_module('drop{}'.format(i), nn.Dropout(dropout[i - 1]))
             if i == len(channels) - 1:
@@ -62,11 +63,84 @@ class CausalReadout(nn.Module):
     def forward(self, x):
         graphs, splits = x
         splits = [sum(splits[0:i + 1]) - 1 for i in range(len(splits))]
-        sinks = torch.cat([graph[:, splits] for graph in graphs]).to(self.device)
+        sinks = torch.cat([graph[:, torch.tensor(splits, device=self.device)] for graph in graphs]).to(self.device)
         sinks = sinks.unsqueeze(0)
         predictions = self.mlp(sinks).squeeze(0).squeeze(0)
         return self.act(predictions)
 
 
+class WeightedMeanReadout(nn.Module):
+    def __init__(self,
+                 channels=[335, 512, 256, 128, 64],
+                 out_channels=1,
+                 act=nn.GELU,
+                 pred_act=nn.Identity,
+                 dropout=0.0,
+                 norm=nn.GroupNorm,
+                 bias=True,
+                 w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
+                 device='cpu'):
+        """Learns a causal graph's readout.
+        param:hidden_features is either a single value or a list of values,
+        determining the number of hidden layers to be created
+
+        param:act, param:dropout, and param:norm are either lists OF THE SAME LEN as hidden_features,
+        or single values to be repeated at each hidden layer
+        """
+        super(WeightedMeanReadout, self).__init__()
+
+        self.device = device
+        self.act = pred_act()
+
+        graph_channels = channels[0]
+
+        (channels,
+         act,
+         dropout,
+         norm,
+         bias) = adjust_args([channels,
+                              act,
+                              dropout,
+                              norm,
+                              bias])
+
+        self.norm_input = norm[0](num_groups=1, num_channels=graph_channels, device=device)
+        self.graph_att = nn.Conv1d(graph_channels,
+                                   1,
+                                   1,
+                                   bias=bias[0],
+                                   device=device)
+
+        self.mlp = nn.Sequential()
+        
+        for i in range(1, len(channels)):
+            if i == 1:
+                self.mlp.add_module('norm_avg', norm[i - 1](num_groups=1, num_channels=channels[0], device=device))
+            self.mlp.add_module('fc{}'.format(i - 1), nn.Conv1d(channels[i - 1],
+                                                                channels[i],
+                                                                1,
+                                                                bias=bias[i - 1],
+                                                                device=device))
+            self.mlp.add_module('norm{}'.format(i), norm[i - 1](num_groups=1, num_channels=channels[i], device=device))
+            self.mlp.add_module('act{}'.format(i), act[i - 1]())
+            self.mlp.add_module('drop{}'.format(i), nn.Dropout(dropout[i - 1]))
+            if i == len(channels) - 1:
+                self.mlp.add_module('prediction', nn.Conv1d(channels[i],
+                                                            out_channels,
+                                                            1,
+                                                            bias=bias[i],
+                                                            device=device))
+
+        self.graph_att.apply(lambda m: init_weights(m, w_init_f))
+        self.mlp.apply(lambda m: init_weights(m, w_init_f))
         
 
+    def forward(self, x):
+        graphs, splits = x
+        graphs = torch.split(graphs[0], splits, dim=1)
+        graphs = [self.norm_input(g.unsqueeze(0)).squeeze(0) for g in graphs]
+        att_ws = [torch.softmax(self.graph_att(g), dim=1) for g in graphs]
+        wavg = [torch.sum(g * w, dim=1) for g, w in zip(graphs, att_ws)]
+        wavg = torch.cat([w.unsqueeze(0) for w in wavg], dim=0)
+        predictions = self.mlp(wavg.unsqueeze(-1)).squeeze(-1).squeeze(-1)
+        return self.act(predictions)

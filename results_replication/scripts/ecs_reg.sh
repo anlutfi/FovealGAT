@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Enlarged cardiac silhouette" "./train/train_args/ft1_train.json" "./train/model_args/ft1_xyt_model_lnlg.json"

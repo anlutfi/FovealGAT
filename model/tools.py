@@ -21,6 +21,18 @@ def adjust_args(args):
     return args
 
 
+def adjust_arg_to_len(target_len, arg):
+    """given a list of arguments param:args:
+    if the first argument is not a list, make it into one.
+    for all following args: if it is a single value,
+        repeat it into a list of the same len as the first one.
+        if it is already a list, assert it has the same len as the first one"""
+    if arg.__class__ not in (tuple, list):
+        return [arg for i in range(target_len)]
+    assert len(arg) == target_len, "wrong len for parameter"
+    return arg
+
+
 # TODO maybe put this in an general params file
 classes_to_init = [nn.Conv2d,
                    nn.Conv1d]
@@ -33,5 +45,5 @@ def init_weights(model, init_f, classes=classes_to_init):
         init_f(model.weight)
         model.weight.requires_grad = True
         if model.bias is not None:
-            model.bias.data.zero_()
+            nn.init.zeros_(model.bias)
             model.bias.requires_grad = True

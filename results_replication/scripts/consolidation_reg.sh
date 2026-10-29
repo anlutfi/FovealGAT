@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Consolidation" "./train/train_args/ft2_train.json" "./train/model_args/ft2_xyt_model_ccoord.json"

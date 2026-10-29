@@ -1,0 +1,1 @@
+python ./train/train_reflacx.py "Groundglass opacity" "./train/train_args/nopre_euc_train.json" "./train/model_args/euc_model.json" 

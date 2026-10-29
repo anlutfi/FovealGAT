@@ -1,0 +1,16 @@
+{"sessions": 5,
+ "epochs": 100,
+ "lr": 3e-4,
+ "pretrained_lr": 1e-5,
+ "weight_decay": 0.0,
+ "store_best_model": true,
+ "stored_model_pth": "/store/alutfi/dev/models/classification",
+ "loss": "bce_with_logits",
+ "optimizer": "adamw",
+ "scheduler": "CosineAnnealingWarmRestarts",
+ "epoch_lr_restart": 40,
+ "lr_min": 1e-6,
+ "dataset_pth": "/store/alutfi/dev/data/gaze_patch_datasets/reflacx/1_ang_res_256",
+ "gaze_noise": 0.0,
+ "pretrained_sd": ""
+}

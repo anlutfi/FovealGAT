@@ -1,5 +1,6 @@
 from torch import nn
 import torch
+import os
 from feature_extraction.pretrained import pyramid_feature_extractor
 from model.tools import init_weights, adjust_args
 
@@ -9,6 +10,7 @@ class GazePatchFeatureExtractor(nn.Module):
     """
     def __init__(self,
                  tail_feat_ext=pyramid_feature_extractor,
+                 state_dict_pth='',
                  channels=[48, 128, 128, 128, 128],
                  act=nn.GELU,
                  norm=nn.BatchNorm2d,
@@ -21,14 +23,15 @@ class GazePatchFeatureExtractor(nn.Module):
         channels, act, norm, bias = adjust_args([channels, act, norm, bias])
         super(GazePatchFeatureExtractor, self).__init__()
         self.device = device
-        self.tail = tail_feat_ext().to(device)
+        self.tail = tail_feat_ext(state_dict_pth, device=device)
+        if state_dict_pth is None or state_dict_pth == '' or not os.path.exists(state_dict_pth):
+            self.tail.apply(lambda m: init_weights(m, w_init_f))
 
         self.head = nn.Sequential().to(device)
         self.head.add_module('norm_0', norm[0](channels[0],
                                                eps=1e-05,
                                                momentum=0.1,
-                                               affine=True,
-                                               bias=bias[0],
+                                               affine=bias[0],
                                                track_running_stats=True).to(device))
         self.head.add_module('act_0', act[0]().to(device))
                 
@@ -42,8 +45,7 @@ class GazePatchFeatureExtractor(nn.Module):
                                  norm[i](chnn,
                                          eps=1e-05,
                                          momentum=0.1,
-                                         affine=True,
-                                         bias=bias[i],
+                                         affine=bias[i],
                                          track_running_stats=True).to(device))
             self.head.add_module('act_{}'.format(i),
                                   act[i]().to(device))
@@ -61,3 +63,43 @@ class GazePatchFeatureExtractor(nn.Module):
             x = torch.tile(x, (1, 3, 1, 1))
 
         return self.head(self.tail(x))
+
+
+class GazePatchCoordConvFeatureExtractor(nn.Module):
+    def __init__(self,
+                 channels=[4, 24, 48, 48, 128, 128, 128, 128],
+                 act=nn.GELU,
+                 norm=nn.BatchNorm2d,
+                 bias=True,
+                 w_init_f=lambda w: nn.init.kaiming_uniform_(w, nonlinearity='relu'),
+                 device='cpu'):
+        channels, act, norm, bias = adjust_args([channels, act, norm, bias])
+        super(GazePatchCoordConvFeatureExtractor, self).__init__()
+        self.device = device
+        self.head = nn.Sequential().to(device)
+        for i in range(1, len(channels)):
+            self.head.add_module('conv_{}'.format(i - 1),
+                                  nn.Conv2d(channels[i - 1],
+                                            channels[i],
+                                            (3, 3) if i < 7 else (2, 2),
+                                            stride=2 if i <= 2 else 1,
+                                            padding=1 if 1 <= i <= 3 else 0,
+                                            bias=bias[i]).to(device))
+            self.head.add_module('norm_{}'.format(i - 1),
+                                  norm[i](channels[i]).to(device)),
+            self.head.add_module('act_{}'.format(i - 1),
+                                  act[i]().to(device))
+        self.head.apply(lambda m: init_weights(m, w_init_f))
+
+
+    def add_spatial_info(self, patches, fixations):
+        ts, xs, ys, *_ = torch.split(fixations, 1, dim=1)
+        txys = torch.cat([ts, xs, ys], dim=1)
+        broadcast_fs = torch.tile(txys, (1, 1, patches.shape[-2], patches.shape[-1]))
+        return torch.cat([patches, broadcast_fs], dim=1)
+    
+    
+    def forward(self, x):
+        patches, fixations = x
+        geo_patches = self.add_spatial_info(patches, fixations)
+        return self.head(geo_patches)

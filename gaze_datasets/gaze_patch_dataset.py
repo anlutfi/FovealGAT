@@ -2,6 +2,8 @@ import torch
 from torch.utils.data import Dataset
 import os
 import json
+from math import ceil # needed only in python 3.11
+from math import log
 
 from gaze_datasets.dataset_tools import identity
 
@@ -24,10 +26,12 @@ class GazePatchDataset(Dataset):
     def __init__(self,
                  dataset_path,
                  target_label,
-                 target_fixation_keys=('t', 'x', 'y'), #TODO test with zoom level(bounding box size)
+                 target_fixation_keys=('t', 'x', 'y'),
                  mode='train',
+                 gaze_noise=0.0,
                  train_val_test_split=1.0,
-                 transform=identity):
+                 transform=identity,
+                 min_max_duration_pth='./dataset_t_info.json'):
         """param:dataset_path is the directory containing the dataset gaze_patch raw data
            param:target_labels is a list of anomalies within those present in the dataset to return as ground truths
            param:target_fixation_keys are the fixation's attributes to be returned alongside the gaze patches
@@ -47,6 +51,7 @@ class GazePatchDataset(Dataset):
         self.labels_path = os.path.sep.join([dataset_path, 'labels'])
         self.target_label = target_label
         self.target_fixation_keys = target_fixation_keys
+        self.gaze_noise=gaze_noise
 
         assert train_val_test_split.__class__ in (float, int, list)
         if train_val_test_split.__class__ in(float, int):
@@ -54,10 +59,37 @@ class GazePatchDataset(Dataset):
             train_val_test_split = [1.0, 0.0, 0.0]
         else:
             assert len(train_val_test_split) == 3 
-            assert int(sum(train_val_test_split)) == 1
+            assert ceil(sum(train_val_test_split)) == 1 ## only in python 3.11 that thinks that int(0.99999999999) == 0
         self.train_val_test_split = train_val_test_split
         self.transform = transform
         self.fixations = GazePatchDataset.load_sort_fnames(self.fixations_path)
+
+        #normalizing fixation duration to 0 a 1 range
+        #using log transform on min max t
+        if os.path.exists(min_max_duration_pth):
+            with open(min_max_duration_pth, 'r') as fp:
+                minmax = json.load(fp)
+            self.min_log_t = minmax['min_log']
+            self.max_log_t = minmax['max_log']
+        else: #find min and max t for all dataset
+            self.min_log_t = float('inf')
+            self.max_log_t = float('-inf')
+            for fix_pth in self.fixations:
+                pth = os.path.sep.join([self.fixations_path, fix_pth])
+                with open(pth, 'r') as fp:
+                    fixs = json.load(fp)
+                for i, fix in enumerate(fixs):
+                    if fix['t'] == 0: # TODO remove this when correcting mimic generation
+                        continue
+                    log_t = log(fix['t'])
+                    self.min_log_t = min(self.min_log_t, log_t)
+                    self.max_log_t = max(self.max_log_t, log_t)
+            with open(min_max_duration_pth, 'w') as fp:
+                json.dump({'min_log': self.min_log_t,
+                           'max_log': self.max_log_t},
+                          fp)
+                                    
+                        
 
         gaze_patches_fns = GazePatchDataset.load_sort_fnames(self.gaze_patches_path)
         self.gaze_patches = {pth.split(os.path.sep)[-1]: pth
@@ -71,8 +103,12 @@ class GazePatchDataset(Dataset):
 
         self.mode = None
         self.set_mode(mode)
-        
 
+        
+    def normalize_t(self, t):
+        return (log(t) - self.min_log_t) / (self.max_log_t - self.min_log_t)
+
+    
     def assign_split_idxs(self):
         if self.mode == GazePatchDataset.train:
             self.split_idxs = self.train_idxs
@@ -80,6 +116,13 @@ class GazePatchDataset(Dataset):
             self.split_idxs = self.val_idxs
         if self.mode == GazePatchDataset.test:
             self.split_idxs = self.test_idxs
+
+
+    def load_splits_from_training(self, splits):
+        self.train_idxs = splits['train']
+        self.val_idxs = splits['val']
+        self.test_idxs = splits['test']
+        self.assign_split_idxs()                
 
 
     def set_mode(self, mode):
