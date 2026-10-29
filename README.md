@@ -21,6 +21,7 @@ REFLACX uses a subset of CXRs from [MIMIC-CXR](https://physionet.org/content/mim
 ### 0.2 Install Python Requirements
 
 install [fovealgat requirements](./requirements.txt)
+
 install [data conversion requirements](./requirements_data.txt)
 
 ### 0.3 Relevant Data from Published Models
