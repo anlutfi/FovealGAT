@@ -1,5 +1,7 @@
 # FovealGAT: A Gaze Tracked Image is Worth a Graph of Foveal Patches
 
+![FovealGAT Architecture](architecture.png)
+
 Chest X-Rays (CXRs) as a sequence of gaze fixations:
 To the best of our knowledge, all multimodal machine learning models that use visual gaze data, use it to enrich the image. This, however, is not how our brains build the image's representation. We capture and interpret it via a sequence of eye fixations and movements.
 
