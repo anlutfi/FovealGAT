@@ -9,27 +9,17 @@ import dataset_convert_confs as conf
 
 ### -REFLACX
 
-In order to run this notebook, you need to import the Metadata class from [the reflacx_lib repo](https://github.com/anlutfi/reflacx_lib)
-
 
 ```python
 reflacx_dir = conf.reflacx_dir
 mimic_dir = conf.mimic_dir
 full_meta_json = conf.full_meta_json
+reflacx_dir, mimic_dir
 ```
 
 
 ```python
-from metadata import Metadata
-```
-
-
-```python
-mtdt = Metadata(reflacx_dir,
-                mimic_dir,
-                full_meta_json,
-                valid_img_only=True,
-                valid_fixations_only=True)
+from reflacx import make_REFLACX_gazepatch_dataset
 ```
 
 How big should each fixation patch be?
@@ -73,7 +63,7 @@ make_dataset = False
 
 ```python
 if make_dataset:
-    bb = make_REFLACX_gazepatch_dataset(qtt_ang_res, img_resize, mtdt, dataset_path, pad=False)
+    bb = make_REFLACX_gazepatch_dataset(qtt_ang_res, img_resize, reflacx_dir, mimic_dir, dataset_path, pad=False)
     bb
 ```
 
@@ -112,84 +102,4 @@ from reflacx import pad_gaze_patches
 ```python
 if make_dataset:
     pad_gaze_patches(pad, gaze_path_dir)
-```
-
-### -MIMIC Eye
-
-MIMIC does not provide an angular resolution for each fixation, so we will use the average angular resolution from REFLACX
-
-
-```python
-fixations_dir = os.path.sep.join([new_dataset_root, 'fixations'])
-mimic_dir = conf.mimic_part_dir
-```
-
-
-```python
-import json
-import os
-```
-
-
-```python
-sum_delta_x = 0
-sum_delta_y = 0
-count = 0
-for sample in os.listdir(fixations_dir):
-    with open(os.path.sep.join([fixations_dir, sample])) as fp:
-        fixations = json.load(fp)
-    for fixation in fixations:
-        count += 1
-        sum_delta_x += fixation['bottom_right'][0] - fixation['top_left'][0]
-        sum_delta_y += fixation['bottom_right'][1] - fixation['top_left'][1]
-
-avg_delta_x = sum_delta_x / (2 * count)
-avg_delta_y = sum_delta_y / (2 * count)
-
-avg_delta_x, avg_delta_y
-
-```
-
-pyramid vision expects xrays in 256 rescaling
-
-
-```python
-img_resize = 256
-```
-
-set output directory for new dataset
-
-
-```python
-out_path = conf.mimic_gaze_patch_dataset_root
-```
-
-set padding to be the same as in REFLACX gaze patch dataset
-
-
-```python
-padding = 31
-```
-
-
-```python
-from mimic_eye import make_MIMIC_EYE_gazepatch_dataset
-```
-
-setting next flag to false wont recreate the dataset in case this notebook is beeing run in sequence
-
-
-```python
-make_dataset = False
-```
-
-
-```python
-if make_dataset:
-    make_MIMIC_EYE_gazepatch_dataset(mimic_dir,
-                                     out_path,
-                                     avg_delta_x,
-                                     avg_delta_y,
-                                     img_resize,
-                                     padding)
 ```
