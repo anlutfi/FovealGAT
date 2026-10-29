@@ -4,7 +4,7 @@ After conversion, we need to load the newly created gaze patch datasets into pyt
 
 
 ```python
-import only_gaze_confs as conf
+import fovealgat_confs as conf
 ```
 
 ### REFLACX
@@ -40,6 +40,19 @@ import matplotlib.pyplot as plt
 plt.imshow(gsp[13])
 ```
 
+
+
+
+    <matplotlib.image.AxesImage at 0x702ee12f7150>
+
+
+
+
+    
+![png](README_files/README_9_1.png)
+    
+
+
 to make a data loader, we first need a collate function, as the gaze patch sequences vary in size
 
 
@@ -58,9 +71,23 @@ ls, sum(ls)
 ```
 
 
+
+
+    ([47, 155, 53], 255)
+
+
+
+
 ```python
 fs.shape, ps.shape, labels.shape
 ```
+
+
+
+
+    (torch.Size([255, 3, 1, 1]), torch.Size([255, 1, 31, 31]), torch.Size([3]))
+
+
 
 now for the DataLoader itself
 
@@ -97,11 +124,25 @@ ls, sum(ls)
 ```
 
 
+
+
+    ([53, 95, 214, 335, 112, 89], 898)
+
+
+
+
 ```python
 fs.shape, ps.shape, labels.shape
 ```
 
-### MIMIC EYE
+
+
+
+    (torch.Size([898, 3, 1, 1]), torch.Size([898, 1, 31, 31]), torch.Size([6]))
+
+
+
+### MIMIC EYE (Not used in the publication)
 
 
 ```python
@@ -136,7 +177,7 @@ fs.shape, gsp.shape, labels.shape
 
 
 ```python
-plt.imshow(gsp[8])
+plt.imshow(gsp[7])
 ```
 
 now for the data loader, identical to the reflacx case

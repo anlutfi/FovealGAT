@@ -1,5 +1,6 @@
-# GazeOnlyGat: Chest X-Rays (CXRs) as a sequence of gaze fixations
+# FovealGAT: A Gaze Tracked Image is Worth a Graph of Foveal Patches
 
+Chest X-Rays (CXRs) as a sequence of gaze fixations:
 To the best of our knowledge, all multimodal machine learning models that use visual gaze data, use it to enrich the image. This, however, is not how our brains build the image's representation. We capture and interpret it via a sequence of eye fixations and movements.
 
 So, in the interest of mimicking human reasoning, it seems logical to represent an image as a sequence of smaller patches, each captured by a fixation.
@@ -9,11 +10,25 @@ This work experiments with this concept in the specific context of chest x-rays.
 
 The following steps explain each component of the workflow and architecture necessary to understand and replicate this experiment.
 
-## 0. Obtain CXR Gaze Datasets
+## 0 Setting up Environment
 
-This work uses both the [REFLACX](https://physionet.org/content/reflacx-xray-localization/1.0.0/) and [MIMIC Eye](https://physionet.org/content/mimic-eye-multimodal-datasets/1.0.0/) datasets. As they require certification to be accessed, they have to be obtained from their original sources.
+### 0.1 Obtain CXR Gaze Datasets
 
-REFLACX uses a subset of CXRs from [MIMIC-CXR](https://physionet.org/content/mimic-cxr/2.0.0/), so it also needs to be downloaded.
+This work uses the [REFLACX](https://physionet.org/content/reflacx-xray-localization/1.0.0/) dataset. As it requires certification to be accessed, they have to be obtained from their original sources.
+
+REFLACX uses a subset of CXRs from [MIMIC-CXR](https://physionet.org/content/mimic-cxr/2.0.0/), so it also needs to be downloaded for the original X-Rays.
+
+### 0.2 Install Python Requirements
+
+To symply run the training scripts, install requirements.txt
+
+To run README notebooks present in each module but dataset conversion, install requirements_nb.txt
+
+To run dataset conversion, install requirements_data.txt
+
+### 0.3 Relevant Data from Published Models
+
+To check dataset splits for each fold of the models used for benchmarking in FovealGAT's paper, together with relevant training and model parameters, check the [Results Replication ReadMe](./results_replication/README.md).
 
 ## 1. Converting CXRs datasets to a gaze sequence
 
@@ -26,7 +41,7 @@ After conversion, we need to load the newly created gaze patch datasets into pyt
 
 ## 3. Feature Extraction
 
-We're using pretrained pyramid vision feature extraction, similar to gazegnn and vit. however, since we are working with small gaze patches, compared to the whole image, we need to limit the convolutions. Failing to do so, will try to extract features that need a larger size than the gazepatch can provide. [Feature Extraction ReadMe](./feature_extraction/README.md)
+We're using pretrained pyramid vision feature extraction, similar to GazeGNN and ViT. however, since we are working with small gaze patches, compared to the whole image, we need to limit the convolutions. Failing to do so, will try to extract features that need a larger size than the gazepatch can provide. [Feature Extraction ReadMe](./feature_extraction/README.md)
 
 ## 4. Adding encodings for sequence position, [X, Y], and fixation duration (t)
 
@@ -54,13 +69,13 @@ Since we now have all individual components, we are ready to run the full model.
 
 ## 6. Training
 
-First thing is setting model and training parameters in [the configuration file](./only_gaze_confs.py)
+First thing is setting model and training parameters in [the configuration file](./fovealgat_confs.py)
 
 load confs and instantiate model and hyper parameters
 
 
 ```python
-import only_gaze_confs as conf
+import fovealgat_confs as conf
 import os
 ```
 
@@ -68,6 +83,7 @@ import os
 ```python
 from feature_extraction.extractors import GazePatchFeatureExtractor
 feat_ext = GazePatchFeatureExtractor(conf.fe_tail_feat_ext,
+                                     conf.fe_state_dict_pth,
                                      conf.fe_channels,
                                      conf.fe_act,
                                      conf.fe_norm,
@@ -85,20 +101,67 @@ encoder = GazeSinCosPosEncoding(conf.reflacx_max_len if conf.dataset_type == 're
 
 
 ```python
-from model.gaze_only_gat import GazeOnlyGAT
-model = GazeOnlyGAT(feat_ext,
+from model.gat_convs.gat_conv import CausalGATConv
+from model.gat_convs.xyt_gat_conv import CausalXYTGATConv, CausalEuclideanTGATConv
+from model.gat_convs.iou_xyt_gat_conv import CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv
+```
+
+
+```python
+def gat_args(gat_conv):
+    if gat_conv == CausalGATConv:
+        gat_conv_args={'channels': conf.grph_channels,
+                    'act_att': conf.grph_act_att,
+                    'act_gat': conf.grph_act_gat,
+                    'norm': conf.grph_norm,
+                    'dropout': conf.grph_dropout,
+                    'bias': conf.grph_bias,
+                    'w_init_f': conf.grph_w_init_f}
+    elif gat_conv in (CausalXYTGATConv, CausalEuclideanTGATConv):
+        gat_conv_args={'channels': conf.grph_channels,
+                    'xy_heads_ratio': conf.grph_xy_heads_ratio,
+                    't_heads_ratio': conf.grph_t_heads_ratio,
+                    'act_att': conf.grph_act_att,
+                    'act_gat': conf.grph_act_gat,
+                    'norm': conf.grph_norm,
+                    'dropout': conf.grph_dropout,
+                    'bias': conf.grph_bias,
+                    'w_init_f': conf.grph_w_init_f}
+    elif gat_conv in (CausalIOU_XYTGATConv, CausalIOU_EuclideanTGATConv):
+        gat_conv_args={'channels': conf.grph_channels,
+                    'xy_heads_ratio': conf.grph_xy_heads_ratio,
+                    't_heads_ratio': conf.grph_t_heads_ratio,
+                    'iou_heads_ratio': conf.grph_iou_heads_ratio,
+                    'act_att': conf.grph_act_att,
+                    'act_gat': conf.grph_act_gat,
+                    'norm': conf.grph_norm,
+                    'dropout': conf.grph_dropout,
+                    'bias': conf.grph_bias,
+                    'w_init_f': conf.grph_w_init_f}
+    return gat_conv_args
+
+    
+```
+
+
+```python
+gat_conv = CausalIOU_EuclideanTGATConv
+gat_conv_args = gat_args(gat_conv)
+```
+
+
+```python
+from model.foveal_gat import FovealGAT
+model = FovealGAT(feat_ext,
                     encoder,
+                    gat_conv,
+                    conf.grph_res_seq,
+                    conf.grph_layers,
                     conf.grph_output_gat_levels,
                     conf.grph_residual_gat_levels,
-                    conf.grph_gat_conv,
-                    conf.readout,
-                    conf.grph_channels,
                     conf.grph_att_heads,
-                    conf.grph_act_att,
-                    conf.grph_act_gat,
-                    conf.grph_norm,
-                    conf.grph_dropout,
-                    conf.grph_bias,
+                    gat_conv_args,
+                    conf.readout,
                     conf.ro_hidden_features,
                     conf.ro_out_channels,
                     conf.ro_hidden_act,
@@ -106,10 +169,8 @@ model = GazeOnlyGAT(feat_ext,
                     conf.ro_dropout,
                     conf.ro_norm,
                     conf.ro_bias,
-                    conf.grph_w_init_f,
                     conf.ro_w_init_f,
                     conf.device)
-model
 ```
 
 
@@ -127,6 +188,9 @@ dataset_pth = (conf.reflacx_gaze_dataset_pth
 dataset = dataset_clss(dataset_pth,
                        conf.desired_label,
                        mode='train',
+                       target_fixation_keys=(('x', 'y', 't')
+                                             if not model.iou
+                                             else ('t', 'x', 'y', 'top_left', 'bottom_right')),
                        train_val_test_split=conf.train_val_test_split,
                        transform=conf.transform)
 ```
