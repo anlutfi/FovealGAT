@@ -47,9 +47,9 @@ We're using pretrained pyramid vision feature extraction, similar to GazeGNN and
 
 With 1X1 feature vectors representing each fixation gaze patch, we now need to add encodings for the fixation's (X, Y) position within the CXR and time duration. [Encodings ReadMe](./node_encodings/README.md)
 
-## 5. GazeOnlyGAT
+## 5. FovealGAT
 
-With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component. [GazeOnlyGAT ReadMe](./model/README.md)
+With the gaze patch features and encodings aggregated into graph nodes, we can feed it through our network. We'll go through each component. [FovealGAT ReadMe](./model/README.md)
 
 ### 5.1 GAT Layer
 
