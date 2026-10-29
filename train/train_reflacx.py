@@ -238,10 +238,7 @@ if __name__ == '__main__':
                                                   train_val_test_split=train_val_test_split,
                                                   transform=transform)
 
-        if session_ds_splits is not None:
-            dataset.load_splits_from_training(session_ds_splits)
-        
-        elif saved_dataset_split is not None and saved_dataset_split != '':
+        if saved_dataset_split is not None and saved_dataset_split != '':
             stats = torch.load(saved_dataset_split, map_location='cpu')
             data_splits = stats['dataset_split']
             dataset.load_splits_from_training(data_splits)
