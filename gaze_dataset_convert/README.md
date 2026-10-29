@@ -17,11 +17,6 @@ full_meta_json = conf.full_meta_json
 reflacx_dir, mimic_dir
 ```
 
-
-```python
-from reflacx import make_REFLACX_gazepatch_dataset
-```
-
 How big should each fixation patch be?
 REFLACX provides each fixation with their angular resolutions (pixels/degree). Tipically, in gaze heatmap generation, each fixation is seen as a gaussian centered on the gaze's xy coordinates, with standard deviation of the angular resolution.
 
