@@ -32,7 +32,7 @@ To check dataset splits for each fold of the models used for benchmarking in Fov
 
 ## 1. Converting CXRs datasets to a gaze sequence
 
-In order to run GazeOnlyGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation.
+In order to run FovealGAT, we first need to convert regular CXR + Gaze datasets into Gaze Patch datasets. Each image needs to be transformed in a sequence of crops corresponding to the region of each gaze fixation.
 [Dataset Conversion ReadMe](./gaze_dataset_convert/README.md)
 
 ## 2. Loading new datasets to torch dataset classes
