@@ -2,24 +2,25 @@
 
 Parameters and dataset splits for models used for benchmarking in FovealGAT's publication are available in this folder. Here's how to access them.
 
-### Dataset Splits
-
 
 ```python
 import fovealgat_confs as conf
 import torch
+import os
 ```
 
 
 ```python
-pth = '/store/alutfi/dev/models/classification/xytreflacx_1_ang_res_256_Atelectasis_BCEWithLogitsLoss_AdamW/20261019_0117/session_0'
+sample_pth = './published_args/classification/xytreflacx_1_ang_res_256_Atelectasis_BCEWithLogitsLoss_AdamW/20261019_0117/session_0'
 ```
+
+### Dataset Splits
 
 Fetch splits
 
 
 ```python
-splits = torch.load('/'.join([pth, 'dataset_splits.pt']))
+splits = torch.load(os.path.sep.join([sample_pth, 'dataset_splits.pt']))
 ```
 
 
@@ -55,34 +56,8 @@ ds.load_splits_from_training(splits)
 
 
 ```python
-model = torch.load('/'.join([pth, 'best_xytreflacx_1_ang_res_256_Atelectasis_BCEWithLogitsLoss_AdamW.pt']), map_location='cpu')
-```
-
-
-```python
-model['train_args']
-```
-
-
-
-
-    {'sessions': 5,
-     'epochs': 100,
-     'lr': 0.0003,
-     'pretrained_lr': 1e-05,
-     'store_best_model': True,
-     'stored_model_pth': '/store/alutfi/dev/models/classification',
-     'loss': 'bce_with_logits',
-     'optimizer': 'adamw',
-     'dataset_pth': '/store/alutfi/dev/data/gaze_patch_datasets/reflacx/1_ang_res_256',
-     'pretrained_sd': '',
-     'gaze_noise': 0.0}
-
-
-
-
-```python
-model['model_args']
+model_args = torch.load(os.path.sep.join([sample_pth, 'model_args.pt']))
+model_args
 ```
 
 
@@ -129,6 +104,29 @@ model['model_args']
      'ro_norm': 'GroupNorm',
      'ro_bias': True,
      'ro_w_init_f': 'kaiming'}
+
+
+
+
+```python
+train_args = torch.load(os.path.sep.join([sample_pth, 'train_args.pt']))
+train_args
+```
+
+
+
+
+    {'sessions': 5,
+     'epochs': 100,
+     'lr': 0.0003,
+     'pretrained_lr': 1e-05,
+     'store_best_model': True,
+     'stored_model_pth': '/store/alutfi/dev/models/classification',
+     'loss': 'bce_with_logits',
+     'optimizer': 'adamw',
+     'dataset_pth': '/store/alutfi/dev/data/gaze_patch_datasets/reflacx/1_ang_res_256',
+     'pretrained_sd': '',
+     'gaze_noise': 0.0}
 
 
 
