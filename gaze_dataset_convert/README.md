@@ -83,7 +83,6 @@ import os
 
 
 ```python
-#TODO un-hardcode
 new_dataset_root = os.path.sep.join([dataset_path, '{}_ang_res_{}'.format(qtt_ang_res, img_resize)])
 gaze_path_dir = os.path.sep.join([new_dataset_root, 'gaze_patches'])
 ```
