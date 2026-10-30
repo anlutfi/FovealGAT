@@ -79,7 +79,7 @@ class GazePatchDataset(Dataset):
                 with open(pth, 'r') as fp:
                     fixs = json.load(fp)
                 for i, fix in enumerate(fixs):
-                    if fix['t'] == 0: # TODO remove this when correcting mimic generation
+                    if fix['t'] == 0: # happens on the first fixation of every mimic_eye datapoint
                         continue
                     log_t = log(fix['t'])
                     self.min_log_t = min(self.min_log_t, log_t)

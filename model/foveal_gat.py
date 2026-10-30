@@ -100,7 +100,7 @@ class FovealGAT(nn.Module):
             fixations, bboxes = torch.split(fixations, (3, 4), dim=1)
             bboxes = bboxes.squeeze(-1).squeeze(-1).transpose(1, 0)
 
-        if 'CoordConv' in self.feat_ext.__class__.__name__: # TODO make this not shitty
+        if 'CoordConv' in self.feat_ext.__class__.__name__:
             feats = self.feat_ext((patches, fixations))
         else:
             feats = self.feat_ext(patches)

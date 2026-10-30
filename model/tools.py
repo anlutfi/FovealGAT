@@ -33,7 +33,6 @@ def adjust_arg_to_len(target_len, arg):
     return arg
 
 
-# TODO maybe put this in an general params file
 classes_to_init = [nn.Conv2d,
                    nn.Conv1d]
 

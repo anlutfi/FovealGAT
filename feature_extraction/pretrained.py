@@ -8,7 +8,7 @@ class Stem(nn.Module):
     took this straight out of GazeGNN codebase to eliminate the need to import their whole modules
     """
     def __init__(self, in_channels=3, out_channels=48, act='gelu'):
-        from train.train_tools import get_act #to avoid circular import TODO make this not shit
+        from train.train_tools import get_act #to avoid circular import
         act_layer = get_act(act)
         super(Stem, self).__init__()
         self.convs = nn.Sequential(
